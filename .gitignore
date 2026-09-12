@@ -1,1 +1,46 @@
+# Project context files (local only)
 /AI_Engineer_Portfolio_Projects.md
+/CLAUDE.md
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Corpus and generated artifacts
+data/*
+!data/manifest.json
+evaluation/results/
+qdrant_storage/
+*.log
+
+# Model caches
+.cache/
+models/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

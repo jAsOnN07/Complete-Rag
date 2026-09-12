@@ -1,31 +1,40 @@
 # Production-Grade RAG System with Evaluation & Observability
 
-A domain-specific document Q&A system built on AWS Bedrock, Qdrant, and LangChain — with hybrid retrieval, RAGAS evaluation, and full Langfuse + OpenTelemetry observability.
+A domain-specific document Q&A system built on AWS Bedrock, Qdrant, and LangChain — with hybrid retrieval, RAGAS evaluation, full Langfuse + OpenTelemetry observability, Portkey LLM gateway with Groq fallback, and layered guardrails.
 
 ## Architecture
 
 ```
 [Source Docs] → [Ingestion & Chunking] → [Embeddings] → [Qdrant Vector DB]
                                                                 │
-[User Query] → [FastAPI] → [Hybrid Retrieval + Re-rank] ←──────┘
-                    │
-             [Bedrock LLM + Prompt Template]
-                    │
-             [Response + Citations]
-                    │
-       ┌────────────┴────────────┐
-  [Langfuse/OTEL trace]     [RAGAS eval harness]
+[User Query] → [Guardrails AI] → [FastAPI] → [Hybrid Retrieval + Re-rank] ←──┘
+  (input validation)                  │
+                             [Portkey LLM Gateway]
+                            /                    \
+                   [Bedrock Claude]          [Groq fallback]
+                            \                    /
+                             [Bedrock Guardrails]
+                          (grounding, PII, content)
+                                     │
+                          [Response + Citations]
+                                     │
+                ┌────────────────────┴────────────────────┐
+           [Langfuse/OTEL trace]                  [RAGAS eval harness]
 ```
 
 ## Tech Stack
 
 | Layer | Tool |
 |---|---|
-| LLM | AWS Bedrock (Claude / Titan) |
-| Embeddings | Bedrock Titan Embeddings |
+| LLM | AWS Bedrock (Claude 3 Sonnet) — primary |
+| LLM Fallback | Groq (Llama 3) |
+| LLM Gateway | Portkey (routing, retries, unified logging) |
+| Embeddings | Bedrock Titan Embeddings V2 |
 | Vector DB | Qdrant |
 | Orchestration | LangChain |
 | API | FastAPI (async, streaming) |
+| Guardrails (input) | Guardrails AI — prompt injection, PII, length, language |
+| Guardrails (output) | AWS Bedrock Guardrails — grounding, PII redaction, content filtering, denied topics |
 | Evaluation | RAGAS |
 | Observability | Langfuse + OpenTelemetry |
 | Deployment | Docker → AWS Fargate |
@@ -36,7 +45,8 @@ A domain-specific document Q&A system built on AWS Bedrock, Qdrant, and LangChai
 rag-system/
 ├── ingestion/          # Document loading, chunking, embedding pipeline
 ├── retrieval/          # Hybrid retrieval (vector + BM25) and re-ranking
-├── generation/         # Bedrock LLM integration and prompt templates
+├── generation/         # Bedrock LLM integration, Portkey gateway, prompt templates
+├── guardrails/         # Guardrails AI (input) + Bedrock Guardrails (output)
 ├── api/                # FastAPI app with /query endpoint
 ├── evaluation/         # RAGAS eval harness and gold eval set
 ├── observability/      # Langfuse and OpenTelemetry instrumentation
@@ -50,9 +60,10 @@ rag-system/
 ### Prerequisites
 - Python 3.11+
 - Docker
-- AWS account with Bedrock access
+- AWS account with Bedrock access (and Bedrock Guardrails configured)
 - Qdrant instance (local or cloud)
 - Langfuse account
+- Portkey account (free tier sufficient)
 
 ### Environment Variables
 ```bash
@@ -67,6 +78,10 @@ QDRANT_URL=<your_qdrant_url>
 QDRANT_API_KEY=<your_qdrant_api_key>
 LANGFUSE_PUBLIC_KEY=<your_langfuse_public_key>
 LANGFUSE_SECRET_KEY=<your_langfuse_secret_key>
+PORTKEY_API_KEY=<your_portkey_api_key>
+GROQ_API_KEY=<your_groq_api_key>
+BEDROCK_GUARDRAIL_ID=<your_guardrail_id>
+BEDROCK_GUARDRAIL_VERSION=DRAFT
 ```
 
 ### Install & Run
@@ -128,14 +143,37 @@ python evaluation/run_eval.py
 - OpenTelemetry spans cover the full FastAPI request lifecycle
 - Langfuse dashboard tracks cost/latency trends and eval scores over time
 
+## Guardrails
+
+### Input — Guardrails AI (runs before LLM gateway)
+- Prompt injection detection
+- PII detection (names, emails, account numbers)
+- Input length enforcement
+- Language detection (reject non-English queries)
+
+### Output — AWS Bedrock Guardrails (runs after LLM response)
+- Grounding check — verifies answer is grounded in retrieved context
+- PII redaction — strips any PII that leaked into the response
+- Content filtering — hate, violence, sexual content
+- Denied topics — rejects responses outside the configured domain
+
+## LLM Gateway — Portkey
+
+- Primary: AWS Bedrock Claude 3 Sonnet
+- Fallback: Groq Llama 3 (automatic on Bedrock timeout or error)
+- Unified request logging across both providers via Portkey dashboard
+- Retry logic and fallback handled at the gateway level — no custom retry code
+
 ## Build Phases
 
 - [x] Phase 1 — Ingestion & chunking
 - [ ] Phase 2 — Indexing & hybrid retrieval
 - [ ] Phase 3 — Generation & FastAPI
-- [ ] Phase 4 — RAGAS evaluation harness
-- [ ] Phase 5 — Observability
-- [ ] Phase 6 — Docker & Fargate deployment
+- [ ] Phase 4 — LLM Gateway (Portkey + Groq fallback)
+- [ ] Phase 5 — Guardrails (Guardrails AI + Bedrock Guardrails)
+- [ ] Phase 6 — RAGAS evaluation harness
+- [ ] Phase 7 — Observability
+- [ ] Phase 8 — Docker & Fargate deployment
 
 ## License
 

@@ -1,0 +1,39 @@
+# ---- Core (in use) ----
+pydantic>=2.9,<3
+pydantic-settings>=2.5,<3
+python-dotenv>=1.0,<2
+
+# ---- AWS / Bedrock ----
+# boto3 is synchronous; every call is wrapped in asyncio.to_thread rather than
+# using aioboto3, whose bedrock-runtime coverage (apply_guardrail in particular)
+# is unverified. The seam is isolated so swapping later is cheap.
+boto3>=1.35
+
+# ---- Vector store ----
+qdrant-client>=1.12,<2
+
+# ---- Ingestion ----
+pymupdf>=1.24
+langchain-text-splitters>=0.3
+beautifulsoup4>=4.12
+lxml>=5.0
+httpx>=0.27
+certifi>=2024.7.4
+
+# ---- API ----
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+
+# ---- Observability ----
+# v4 is current and is itself an OpenTelemetry SDK; v3 has a different API.
+langfuse>=4.0,<5
+
+# ---- Later milestones (not yet imported) ----
+# M6  hybrid retrieval  : qdrant-client[fastembed]
+# M6  reranking         : sentence-transformers>=3.2
+# M7  LLM gateway       : portkey-ai>=1.9
+# M8  input guardrails  : guardrails-ai>=0.11,<0.12
+# M8  streaming         : sse-starlette>=2.1
+# M4  evaluation        : ragas>=0.2,<0.4
+# M9  OTEL spans        : opentelemetry-sdk>=1.27
+#                         opentelemetry-instrumentation-fastapi>=0.48b0
