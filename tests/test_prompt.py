@@ -127,3 +127,17 @@ def test_is_not_found_response_detects_the_sentinel():
 def test_grounding_sources_are_the_raw_chunk_texts(chunks):
     sources = PromptBuilder().grounding_sources(chunks)
     assert sources == [c.chunk.text for c in chunks]
+
+
+def test_parse_citations_accepts_fullwidth_brackets(chunks):
+    """gpt-oss emits 【5】 (CJK fullwidth) for citations; dropping them is a parser bug."""
+    payload = PromptBuilder().build("q", chunks)
+    citations, invalid = parse_citations("Issued for commercial banks 【2】.", payload.label_map)
+    assert invalid == []
+    assert [c.chunk_id for c in citations] == [chunks[1].chunk.chunk_id]
+
+
+def test_parse_citations_accepts_adjacent_brackets(chunks):
+    payload = PromptBuilder().build("q", chunks)
+    citations, _ = parse_citations("Districts are X [1][2].", payload.label_map)
+    assert len(citations) == 2

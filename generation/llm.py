@@ -119,3 +119,89 @@ def build_bedrock_llm(settings: Any = None) -> BedrockLlmClient:
         ),
     )
     return BedrockLlmClient(client=client, model_id=settings.bedrock_llm_model_id)
+
+
+class PortkeyLlmClient:
+    """Chat completions through the Portkey gateway.
+
+    No model is passed on the request: the Portkey config owns routing and
+    passing one would override the fallback chain. The provider that actually
+    served is derived from the model id in the response.
+    """
+
+    def __init__(
+        self,
+        *,
+        client: Any,
+        settings: Any,
+        tracer: Tracer | None = None,
+    ) -> None:
+        self._client = client
+        self._settings = settings
+        self._tracer = tracer or get_tracer()
+
+    @property
+    def model_id(self) -> str:
+        return self._settings.bedrock_llm_model_id
+
+    async def complete(self, system: str, user: str) -> LlmResult:
+        from generation.gateway import provider_from_model
+
+        async with self._tracer.observe(
+            "llm.answer",
+            as_type="generation",
+            input={"system_chars": len(system), "user_chars": len(user)},
+            model=self._settings.bedrock_llm_model_id,
+        ) as span:
+            try:
+                response = await self._client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    max_tokens=self._settings.llm_max_tokens,
+                    temperature=self._settings.llm_temperature,
+                )
+            except Exception as exc:  # noqa: BLE001 - re-raised as a typed error
+                raise UpstreamServiceError(
+                    "portkey", "chat.completions", f"{type(exc).__name__}: {exc}", cause=exc
+                ) from exc
+
+            choice = response.choices[0]
+            text = choice.message.content or ""
+            usage = getattr(response, "usage", None)
+            served = getattr(response, "model", None)
+            provider = provider_from_model(served, self._settings)
+            result = LlmResult(
+                text=text,
+                model_id=served or self._settings.bedrock_llm_model_id,
+                provider=provider,
+                input_tokens=getattr(usage, "prompt_tokens", 0) or 0,
+                output_tokens=getattr(usage, "completion_tokens", 0) or 0,
+                stop_reason=getattr(choice, "finish_reason", None),
+            )
+            span.update(
+                output={"chars": len(text), "served_model": served},
+                usage_details={"input": result.input_tokens, "output": result.output_tokens},
+                metadata={"provider": provider, "stop_reason": result.stop_reason},
+            )
+            return result
+
+    async def stream(self, system: str, user: str) -> AsyncIterator[str]:
+        """Real token streaming lands at M8 with the windowed output guard."""
+        result = await self.complete(system, user)
+        yield result.text
+
+
+def build_llm(settings: Any = None) -> PortkeyLlmClient | BedrockLlmClient:
+    """Portkey unless explicitly told to call Bedrock directly."""
+    if settings is None:
+        from core.config import get_settings
+
+        settings = get_settings()
+    if settings.llm_backend == "bedrock":
+        return build_bedrock_llm(settings)
+
+    from generation.gateway import build_portkey_client
+
+    return PortkeyLlmClient(client=build_portkey_client(settings), settings=settings)

@@ -19,7 +19,7 @@ from core.service import RagService
 
 async def run(args: argparse.Namespace) -> int:
     settings = get_settings()
-    from generation.llm import build_bedrock_llm
+    from generation.llm import build_llm
     from observability.tracing import get_tracer
     from retrieval.embedder import build_embedder
     from retrieval.vector_store import build_qdrant_store
@@ -37,7 +37,7 @@ async def run(args: argparse.Namespace) -> int:
     service = RagService(
         embedder=embedder,
         store=store,
-        llm=None if args.retrieve_only else build_bedrock_llm(settings),
+        llm=None if args.retrieve_only else build_llm(settings),
         top_k=settings.top_k,
         rerank_top_n=settings.rerank_top_n,
         relevance_threshold=settings.threshold_for("dense"),

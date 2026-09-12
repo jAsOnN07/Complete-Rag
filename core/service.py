@@ -119,7 +119,7 @@ class RagService:
 
 def build_service(settings: Any = None) -> RagService:
     from core.config import get_settings
-    from generation.llm import build_bedrock_llm
+    from generation.llm import build_llm
     from retrieval.embedder import build_embedder
     from retrieval.vector_store import build_qdrant_store
 
@@ -129,7 +129,7 @@ def build_service(settings: Any = None) -> RagService:
     return RagService(
         embedder=build_embedder(settings),
         store=build_qdrant_store(settings),
-        llm=build_bedrock_llm(settings),
+        llm=build_llm(settings),
         top_k=settings.top_k,
         rerank_top_n=settings.rerank_top_n,
         relevance_threshold=settings.threshold_for("dense"),

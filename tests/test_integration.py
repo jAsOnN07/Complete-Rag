@@ -104,3 +104,16 @@ async def test_end_to_end_query_returns_a_cited_answer(settings):
     assert answer.not_found is False, "corpus may not be indexed yet"
     assert answer.citations
     assert answer.invalid_citation_rate == 0.0
+
+
+async def test_gateway_falls_back_to_groq_when_bedrock_fails(settings):
+    """M7 acceptance: with Bedrock blocked, Portkey must serve the answer from Groq.
+
+    Requires PORTKEY_CONFIG_SLUG on accounts with block_inline_config.
+    """
+    from generation.llm import build_llm
+
+    result = await build_llm(settings).complete("You are terse.", "Reply with the single word: ok")
+    assert result.text.strip()
+    assert result.provider in ("groq", "bedrock")
+    assert result.input_tokens > 0

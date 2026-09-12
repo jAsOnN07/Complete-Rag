@@ -167,6 +167,11 @@ def aggregate(result: EvalResult, gold: GoldSet) -> dict[str, Any]:
             "invalid_citation_rate": round(
                 M.mean([g.invalid_citation_rate for g in gpos if not g.not_found]), 4
             ),
+            # Answered with at least one resolvable citation. A correct answer
+            # with no citation is unverifiable, which for this system is a failure.
+            "citation_compliance": round(
+                M.mean([1.0 if g.citations else 0.0 for g in gpos if not g.not_found]), 4
+            ),
             "mean_latency_ms": round(M.mean([g.latency_ms for g in gen]), 1),
             "total_input_tokens": sum(g.input_tokens for g in gen),
             "total_output_tokens": sum(g.output_tokens for g in gen),

@@ -20,7 +20,8 @@ PROMPT_VERSION = "v1"
 # Exact string so detection is deterministic rather than fuzzy-matching "I don't know".
 NOT_FOUND_SENTINEL = "NOT_FOUND_IN_CONTEXT"
 
-_LABEL_RE = re.compile(r"\[([\d\s,]+)\]")
+# ASCII [n] and CJK fullwidth 【n】 - some models (gpt-oss) emit the latter.
+_LABEL_RE = re.compile(r"[\[【]([\d\s,]+)[\]】]")
 
 SYSTEM_PROMPT = f"""You answer questions about Indian banking regulation using ONLY the \
 numbered source excerpts provided.

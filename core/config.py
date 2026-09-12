@@ -13,6 +13,7 @@ from core.models import ChunkStrategy
 
 RerankerBackend = Literal["cross_encoder", "bedrock", "none"]
 EmbeddingBackend = Literal["bedrock", "fastembed"]
+LlmBackend = Literal["portkey", "bedrock"]
 
 # The relevance threshold is only meaningful against the scale of whatever
 # produced the FINAL score, which is not always the reranker: with no reranker
@@ -64,13 +65,22 @@ class Settings(BaseSettings):
     qdrant_api_key: SecretStr | None = None
     qdrant_collection_prefix: str = "rbi_circulars"
 
-    # LLM gateway
+    # LLM gateway. Portkey is the production path (routing + Bedrock->Groq
+    # fallback); "bedrock" calls Bedrock directly and exists for the M2
+    # integration check only.
+    llm_backend: LlmBackend = "portkey"
     portkey_api_key: SecretStr | None = None
     portkey_base_url: str = "https://api.portkey.ai/v1"
-    portkey_bedrock_provider: str = "@bedrock-prod"
-    portkey_groq_provider: str = "@groq-prod"
+    portkey_config_slug: str | None = None
+    portkey_bedrock_provider: str = "@aws"
+    portkey_groq_provider: str = "@groq"
     groq_api_key: SecretStr | None = None
-    groq_model_id: str = "llama-3.3-70b-versatile"
+    # Groq retired its Llama 3 chat models; gpt-oss-120b is the current
+    # strongest open-weights option there. Config-driven, so swap freely.
+    groq_model_id: str = "openai/gpt-oss-120b"
+    groq_reasoning_effort: str | None = "low"
+    llm_max_tokens: int = Field(default=2048, gt=0)
+    llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
 
     # Observability
     langfuse_public_key: SecretStr | None = None
@@ -88,6 +98,13 @@ class Settings(BaseSettings):
     cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     relevance_threshold: float | None = None
     max_question_chars: int = Field(default=1000, gt=0)
+
+    @field_validator("portkey_config_slug", "groq_reasoning_effort", mode="before")
+    @classmethod
+    def _blank_string_is_none(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
     @field_validator("relevance_threshold", mode="before")
     @classmethod
@@ -155,6 +172,8 @@ class Settings(BaseSettings):
             "relevance_threshold": self.resolved_relevance_threshold,
             "relevance_threshold_dense": self.threshold_for("dense"),
             "bedrock_llm_model_id": self.bedrock_llm_model_id,
+            "llm_backend": self.llm_backend,
+            "groq_model_id": self.groq_model_id,
             "embedding_backend": self.embedding_backend,
             "embed_model_id": self.embed_model_id,
             "embed_dim": self.embed_dim,
