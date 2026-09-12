@@ -40,7 +40,7 @@ def test_threshold_is_resolved_against_the_scale_that_produced_the_score():
     settings = Settings(reranker_backend="cross_encoder")
     assert settings.threshold_for("cross_encoder") == 0.0
     assert settings.threshold_for("dense") == 0.55
-    assert settings.threshold_for("rrf") == 0.015
+    assert settings.threshold_for("rrf") == 0.0
 
 
 def test_unknown_score_scale_fails_loudly():
@@ -107,3 +107,13 @@ def test_fingerprint_changes_with_embedding_backend():
         Settings(embedding_backend="bedrock").fingerprint()
         != Settings(embedding_backend="fastembed").fingerprint()
     )
+
+
+def test_final_score_scale_follows_what_is_actually_wired():
+    """Config may name a reranker that is not wired; the gate must not trust it."""
+    hybrid_ce = Settings(retrieval_mode="hybrid", reranker_backend="cross_encoder")
+    assert hybrid_ce.final_score_scale(reranker_active=True) == "cross_encoder"
+    assert hybrid_ce.final_score_scale(reranker_active=False) == "rrf"
+    dense_ce = Settings(retrieval_mode="dense", reranker_backend="cross_encoder")
+    assert dense_ce.final_score_scale(reranker_active=False) == "dense"
+    assert Settings(retrieval_mode="dense", reranker_backend="none").final_score_scale(reranker_active=True) == "dense"

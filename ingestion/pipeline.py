@@ -103,14 +103,24 @@ async def run(args: argparse.Namespace) -> int:
     embedder = build_embedder(settings)
     store = build_qdrant_store(settings)
 
+    texts = [c.text for c in chunks]
     print(f"\nembedding {len(chunks)} chunks with {embedder.model_id} ...")
-    vectors = await embedder.embed_documents([c.text for c in chunks])
+    vectors = await embedder.embed_documents(texts)
+
+    from retrieval.bm25 import Bm25Encoder
+
+    # Sparse vectors are always written: they cost nothing to store and let
+    # RETRIEVAL_MODE flip between dense and hybrid without re-ingesting.
+    print("encoding BM25 term frequencies ...")
+    sparse = await Bm25Encoder().encode_documents(texts)
 
     await store.ensure_collection(recreate=args.recreate)
     written = 0
     for start in range(0, len(chunks), args.batch_size):
         stop = start + args.batch_size
-        written += await store.upsert(chunks[start:stop], vectors[start:stop])
+        written += await store.upsert(
+            chunks[start:stop], vectors[start:stop], sparse[start:stop]
+        )
         print(f"  upserted {written}/{len(chunks)}")
 
     total = await store.count()

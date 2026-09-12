@@ -14,6 +14,7 @@ from core.models import ChunkStrategy
 RerankerBackend = Literal["cross_encoder", "bedrock", "none"]
 EmbeddingBackend = Literal["bedrock", "fastembed"]
 LlmBackend = Literal["portkey", "bedrock"]
+RetrievalMode = Literal["dense", "hybrid"]
 
 # The relevance threshold is only meaningful against the scale of whatever
 # produced the FINAL score, which is not always the reranker: with no reranker
@@ -25,7 +26,10 @@ _DEFAULT_THRESHOLDS: dict[str, float] = {
     # unanswerable negatives score 0.67-0.74 and CANNOT be separated by cosine
     # alone - that decision belongs to the reranker (M6) and the LLM sentinel.
     "dense": 0.55,
-    "rrf": 0.015,           # raw RRF, just under 1/(rrf_k=60)
+    # Qdrant RRF (k=1) is rank-based: an irrelevant query still scores 0.5 for
+    # its top hit, so no threshold here carries relevance meaning. Set to 0 so
+    # hybrid mode never gates pre-LLM; the reranker and sentinel own not-found.
+    "rrf": 0.0,
     "cross_encoder": 0.0,   # ms-marco logit; >0 means "more relevant than not"
     "bedrock": 0.35,        # Bedrock Rerank returns 0-1
     "none": 0.55,           # no reranker => the dense score survives
@@ -93,6 +97,9 @@ class Settings(BaseSettings):
     chunk_size: int = Field(default=1000, gt=0)
     chunk_overlap: int = Field(default=150, ge=0)
     top_k: int = Field(default=20, gt=0)
+    # dense: cosine only. hybrid: dense + BM25 sparse fused by RRF on the server.
+    retrieval_mode: RetrievalMode = "dense"
+    prefetch_k: int = Field(default=40, gt=0)
     rerank_top_n: int = Field(default=5, gt=0)
     reranker_backend: RerankerBackend = "cross_encoder"
     cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
@@ -131,6 +138,17 @@ class Settings(BaseSettings):
     def resolved_relevance_threshold(self) -> float:
         return self.threshold_for(self.reranker_backend)
 
+    def final_score_scale(self, *, reranker_active: bool) -> str:
+        """The scale of whatever produces the score the not-found gate reads.
+
+        Takes an explicit flag rather than reading reranker_backend: config can
+        name a reranker that is not wired (it was, for one milestone), and the
+        gate would then silently read the wrong scale.
+        """
+        if reranker_active and self.reranker_backend != "none":
+            return self.reranker_backend
+        return "rrf" if self.retrieval_mode == "hybrid" else "dense"
+
     @property
     def embed_model_id(self) -> str:
         if self.embedding_backend == "fastembed":
@@ -166,6 +184,8 @@ class Settings(BaseSettings):
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
             "top_k": self.top_k,
+            "retrieval_mode": self.retrieval_mode,
+            "prefetch_k": self.prefetch_k,
             "rerank_top_n": self.rerank_top_n,
             "reranker_backend": self.reranker_backend,
             "cross_encoder_model": self.cross_encoder_model,

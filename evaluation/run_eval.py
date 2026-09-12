@@ -98,6 +98,19 @@ def score_retrieval(
     total_docs = len(q.expected_doc_ids)
     top = retrieved[0].score if retrieved else None
 
+    # nDCG needs an exact "total relevant", which is known at document level
+    # but not at chunk level (several chunks of one circular may carry the
+    # evidence). So it is scored on first-occurrence-per-doc relevance: any
+    # later chunk of an already-credited document counts as not relevant.
+    seen_docs: set[str] = set()
+    first_hit_rel: list[bool] = []
+    for s, hit in zip(retrieved, chunk_rel):
+        if hit and s.chunk.doc_id not in seen_docs:
+            seen_docs.add(s.chunk.doc_id)
+            first_hit_rel.append(True)
+        else:
+            first_hit_rel.append(False)
+
     # Doc-level recall counts distinct expected docs found, not repeated hits
     # on the same doc - six chunks from one circular is not six-out-of-six.
     found_docs = {s.chunk.doc_id for s in retrieved[:k] if q.doc_hits(s)}
@@ -116,7 +129,7 @@ def score_retrieval(
         chunk_recall_at_k=M.recall_at_k(chunk_rel, k, total_docs),
         doc_recall_at_k=doc_recall,
         mrr=M.reciprocal_rank(chunk_rel),
-        ndcg_at_k=M.ndcg_at_k(chunk_rel, k, total_docs),
+        ndcg_at_k=M.ndcg_at_k(first_hit_rel, k, total_docs),
         top_score=top,
         negative_gate_correct=(
             (top is None or top < threshold) if q.is_negative else None
@@ -202,7 +215,8 @@ async def run(args: argparse.Namespace) -> int:
     from core.service import build_service
 
     service = build_service(settings)
-    threshold = settings.threshold_for("dense")
+    scale = settings.final_score_scale(reranker_active=False)
+    threshold = settings.threshold_for(scale)
     started = time.perf_counter()
     result = EvalResult(
         run_id=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
@@ -218,7 +232,8 @@ async def run(args: argparse.Namespace) -> int:
     )
 
     print(f"run {result.run_id}  tier={args.tier}  k={args.k}  fingerprint={result.config_fingerprint}")
-    print(f"collection={settings.collection_name()}  threshold(dense)={threshold}")
+    print(f"collection={settings.collection_name()}  mode={settings.retrieval_mode}  "
+          f"threshold({scale})={threshold}")
     print(f"{len(questions)} questions ({result.unverified_questions} unverified)\n")
 
     for q in questions:

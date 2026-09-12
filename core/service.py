@@ -15,6 +15,7 @@ from typing import Any, Sequence
 
 from core.models import Answer, ScoredChunk
 from core.ports import Embedder, LlmClient, Reranker, VectorStore
+from retrieval.hybrid import DenseRetriever
 from generation.prompt import PromptBuilder, is_not_found_response, parse_citations
 from observability.tracing import Tracer, get_tracer
 
@@ -28,6 +29,7 @@ class RagService:
         llm: LlmClient,
         prompt_builder: PromptBuilder | None = None,
         reranker: Reranker | None = None,
+        retriever: Any | None = None,
         top_k: int = 20,
         rerank_top_n: int = 5,
         relevance_threshold: float = 0.0,
@@ -36,6 +38,9 @@ class RagService:
         self._embedder = embedder
         self._store = store
         self._llm = llm
+        self._retriever = retriever or DenseRetriever(
+            embedder=embedder, store=store, top_k=top_k
+        )
         self._prompt = prompt_builder or PromptBuilder()
         self._reranker = reranker
         self._top_k = top_k
@@ -50,8 +55,7 @@ class RagService:
         self, question: str, *, top_n: int | None = None
     ) -> list[ScoredChunk]:
         limit = top_n or self._rerank_top_n
-        vector = await self._embedder.embed_query(question)
-        candidates = await self._store.search_dense(vector, self._top_k)
+        candidates = await self._retriever.retrieve(question, k=self._top_k)
         if self._reranker is not None:
             return await self._reranker.rerank(question, candidates, limit)
         return candidates[:limit]
@@ -124,13 +128,31 @@ def build_service(settings: Any = None) -> RagService:
     from retrieval.vector_store import build_qdrant_store
 
     settings = settings or get_settings()
-    # No reranker is wired until M6, so the final score is raw Qdrant cosine and
-    # the threshold must be read on the dense scale, not the reranker's.
+    embedder = build_embedder(settings)
+    store = build_qdrant_store(settings)
+
+    retriever: Any
+    if settings.retrieval_mode == "hybrid":
+        from retrieval.bm25 import Bm25Encoder
+        from retrieval.hybrid import HybridRetriever
+
+        retriever = HybridRetriever(
+            embedder=embedder, sparse=Bm25Encoder(), store=store,
+            top_k=settings.top_k, prefetch_k=settings.prefetch_k,
+        )
+    else:
+        retriever = DenseRetriever(embedder=embedder, store=store, top_k=settings.top_k)
+
+    # The not-found gate reads whatever produces the final score - reranker if
+    # wired, else RRF (vacuous) or cosine - and thresholds are per scale.
     return RagService(
-        embedder=build_embedder(settings),
-        store=build_qdrant_store(settings),
+        embedder=embedder,
+        store=store,
         llm=build_llm(settings),
+        retriever=retriever,
         top_k=settings.top_k,
         rerank_top_n=settings.rerank_top_n,
-        relevance_threshold=settings.threshold_for("dense"),
+        relevance_threshold=settings.threshold_for(
+            settings.final_score_scale(reranker_active=False)
+        ),
     )

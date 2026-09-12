@@ -86,3 +86,12 @@ def test_aggregate_splits_positives_and_negatives():
     assert agg["retrieval"]["hit@1"] == 1.0
     assert agg["negative_gate_accuracy"] == 1.0
     assert "single_hop" in agg["by_type"]
+
+
+def test_ndcg_never_exceeds_one_when_a_doc_yields_several_relevant_chunks():
+    """Several evidence-bearing chunks from one circular is one relevant document."""
+    q = positive(evidence=["seven circulars"])
+    rows = [scored("a", "seven circulars withdrawn", 0.9, i) for i in range(4)]
+    r = score_retrieval(q, rows, k=4, threshold=0.55)
+    assert r.ndcg_at_k <= 1.0
+    assert r.ndcg_at_k == 1.0

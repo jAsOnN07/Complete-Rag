@@ -4,8 +4,9 @@ The whole Chunk goes into the point payload, so retrieval reconstructs it with
 `Chunk.model_validate(payload)` and needs no sidecar document store. At 45
 documents the duplication costs nothing and removes an entire class of join bug.
 
-The collection is created with a named dense vector so the sparse BM25 vector
-can be added alongside it at M6 without recreating the collection.
+Dense and sparse (BM25) vectors are named vectors on one collection. Sparse
+uses ``Modifier.IDF`` so Qdrant computes IDF server-side; hybrid search is a
+single Query API call with two prefetches fused by RRF on the server.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from qdrant_client import AsyncQdrantClient, models
 
 from core.models import Chunk, ScoredChunk
 from observability.tracing import Tracer, get_tracer
+from retrieval.bm25 import SparseVector
 
 DENSE_VECTOR_NAME = "dense"
 SPARSE_VECTOR_NAME = "sparse"
@@ -65,6 +67,11 @@ class QdrantVectorStore:
                             size=self._dim, distance=self._distance
                         )
                     },
+                    sparse_vectors_config={
+                        SPARSE_VECTOR_NAME: models.SparseVectorParams(
+                            modifier=models.Modifier.IDF
+                        )
+                    },
                 )
                 # Payload indexes are a no-op in Qdrant local mode, which warns
                 # on every call; skip them there rather than spam the test run.
@@ -78,24 +85,37 @@ class QdrantVectorStore:
             span.update(output={"created": not exists})
 
     async def upsert(
-        self, chunks: Sequence[Chunk], vectors: Sequence[Sequence[float]]
+        self,
+        chunks: Sequence[Chunk],
+        vectors: Sequence[Sequence[float]],
+        sparse: Sequence[SparseVector] | None = None,
     ) -> int:
         if len(chunks) != len(vectors):
             raise ValueError(
                 f"chunk/vector count mismatch: {len(chunks)} vs {len(vectors)}"
             )
+        if sparse is not None and len(sparse) != len(chunks):
+            raise ValueError(
+                f"chunk/sparse count mismatch: {len(chunks)} vs {len(sparse)}"
+            )
         async with self._tracer.observe(
             "qdrant.upsert",
             input={"collection": self._collection, "points": len(chunks)},
         ) as span:
-            points = [
-                models.PointStruct(
-                    id=point_id_for(chunk.chunk_id),
-                    vector={DENSE_VECTOR_NAME: list(vector)},
-                    payload=chunk.model_dump(mode="json"),
+            points = []
+            for i, (chunk, vector) in enumerate(zip(chunks, vectors)):
+                named: dict[str, Any] = {DENSE_VECTOR_NAME: list(vector)}
+                if sparse is not None:
+                    named[SPARSE_VECTOR_NAME] = models.SparseVector(
+                        indices=sparse[i].indices, values=sparse[i].values
+                    )
+                points.append(
+                    models.PointStruct(
+                        id=point_id_for(chunk.chunk_id),
+                        vector=named,
+                        payload=chunk.model_dump(mode="json"),
+                    )
                 )
-                for chunk, vector in zip(chunks, vectors)
-            ]
             await self._client.upsert(
                 collection_name=self._collection, points=points, wait=True
             )
@@ -133,6 +153,76 @@ class QdrantVectorStore:
                 }
             )
             return scored
+
+    async def search_hybrid(
+        self,
+        dense: Sequence[float],
+        sparse: SparseVector,
+        k: int,
+        *,
+        prefetch_k: int | None = None,
+    ) -> list[ScoredChunk]:
+        """One round trip: dense and sparse prefetches fused by RRF on the server.
+
+        RRF, not a weighted sum - there is no magic constant to tune, and the
+        two score scales (cosine vs BM25) never have to be reconciled.
+        """
+        prefetch_k = prefetch_k or max(k * 4, 20)
+        async with self._tracer.observe(
+            "qdrant.search_hybrid",
+            as_type="retriever",
+            input={"collection": self._collection, "k": k, "prefetch_k": prefetch_k},
+        ) as span:
+            response = await self._client.query_points(
+                collection_name=self._collection,
+                prefetch=[
+                    models.Prefetch(
+                        query=list(dense), using=DENSE_VECTOR_NAME, limit=prefetch_k
+                    ),
+                    models.Prefetch(
+                        query=models.SparseVector(
+                            indices=sparse.indices, values=sparse.values
+                        ),
+                        using=SPARSE_VECTOR_NAME,
+                        limit=prefetch_k,
+                    ),
+                ],
+                query=models.FusionQuery(fusion=models.Fusion.RRF),
+                limit=k,
+                with_payload=True,
+            )
+            scored = [
+                ScoredChunk(
+                    chunk=Chunk.model_validate(point.payload),
+                    score=point.score,
+                    rank=rank,
+                    stage="fused",
+                )
+                for rank, point in enumerate(response.points)
+            ]
+            span.update(
+                output={
+                    "returned": len(scored),
+                    "top_score": scored[0].score if scored else None,
+                }
+            )
+            return scored
+
+    async def search_sparse(self, sparse: SparseVector, k: int) -> list[ScoredChunk]:
+        """Sparse-only search; exists for the client/server RRF congruence test."""
+        response = await self._client.query_points(
+            collection_name=self._collection,
+            query=models.SparseVector(indices=sparse.indices, values=sparse.values),
+            using=SPARSE_VECTOR_NAME,
+            limit=k,
+            with_payload=True,
+        )
+        return [
+            ScoredChunk(
+                chunk=Chunk.model_validate(p.payload), score=p.score, rank=i, stage="sparse"
+            )
+            for i, p in enumerate(response.points)
+        ]
 
     async def count(self) -> int:
         result = await self._client.count(
