@@ -117,3 +117,12 @@ def test_final_score_scale_follows_what_is_actually_wired():
     dense_ce = Settings(retrieval_mode="dense", reranker_backend="cross_encoder")
     assert dense_ce.final_score_scale(reranker_active=False) == "dense"
     assert Settings(retrieval_mode="dense", reranker_backend="none").final_score_scale(reranker_active=True) == "dense"
+
+
+def test_context_header_gets_its_own_collection_and_fingerprint():
+    """Header changes the vectors, so it can never share a collection with plain chunks."""
+    plain = Settings(chunk_context_header=False)
+    ctx = Settings(chunk_context_header=True)
+    assert plain.collection_name() != ctx.collection_name()
+    assert "-ctx_" in ctx.collection_name()
+    assert plain.fingerprint() != ctx.fingerprint()

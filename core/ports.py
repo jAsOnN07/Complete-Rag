@@ -73,7 +73,7 @@ class Reranker(Protocol):
 class LlmClient(Protocol):
     async def complete(self, system: str, user: str) -> "LlmResult": ...
 
-    def stream(self, system: str, user: str) -> AsyncIterator[str]: ...
+    def stream(self, system: str, user: str) -> AsyncIterator["LlmDelta"]: ...
 
 
 @runtime_checkable
@@ -86,6 +86,29 @@ class OutputGuard(Protocol):
     async def check(
         self, *, question: str, answer: str, grounding_sources: Sequence[str]
     ) -> Any: ...
+
+
+class LlmDelta:
+    """One streamed increment. The final delta carries usage and done=True."""
+
+    def __init__(
+        self,
+        text: str = "",
+        *,
+        done: bool = False,
+        model_id: str | None = None,
+        provider: str | None = None,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        stop_reason: str | None = None,
+    ) -> None:
+        self.text = text
+        self.done = done
+        self.model_id = model_id
+        self.provider = provider
+        self.input_tokens = input_tokens
+        self.output_tokens = output_tokens
+        self.stop_reason = stop_reason
 
 
 class LlmResult:
@@ -121,6 +144,7 @@ __all__ = [
     "Embedder",
     "InputGuard",
     "LlmClient",
+    "LlmDelta",
     "LlmResult",
     "Loader",
     "OutputGuard",

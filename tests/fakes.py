@@ -11,7 +11,7 @@ import hashlib
 import math
 from typing import AsyncIterator, Sequence
 
-from core.ports import LlmResult
+from core.ports import LlmDelta, LlmResult
 
 
 class FakeEmbedder:
@@ -82,9 +82,17 @@ class FakeLlm:
             stop_reason="end_turn",
         )
 
-    async def stream(self, system: str, user: str) -> AsyncIterator[str]:
+    async def stream(self, system: str, user: str) -> AsyncIterator[LlmDelta]:
+        """Word-by-word deltas, then a final usage delta - the shape real streams have."""
         result = await self.complete(system, user)
-        yield result.text
+        words = result.text.split(" ")
+        for i, w in enumerate(words):
+            yield LlmDelta(w if i == len(words) - 1 else w + " ")
+        yield LlmDelta(
+            done=True, model_id=result.model_id, provider=result.provider,
+            input_tokens=result.input_tokens, output_tokens=result.output_tokens,
+            stop_reason=result.stop_reason,
+        )
 
 
 class ExplodingLlm:
@@ -93,6 +101,56 @@ class ExplodingLlm:
     async def complete(self, system: str, user: str) -> LlmResult:
         raise AssertionError("LLM must not be called when nothing clears the threshold")
 
-    async def stream(self, system: str, user: str) -> AsyncIterator[str]:
+    async def stream(self, system: str, user: str) -> AsyncIterator[LlmDelta]:
         raise AssertionError("LLM must not be called")
-        yield ""  # pragma: no cover
+        yield LlmDelta()  # pragma: no cover
+
+
+class FakeInputGuard:
+    """Blocks when the question contains `trigger`."""
+
+    def __init__(self, trigger: str = "IGNORE PREVIOUS", kind: str = "prompt_injection") -> None:
+        self.trigger = trigger
+        self.kind = kind
+        self.calls: list[str] = []
+
+    async def check(self, question: str):
+        from guards.input_guards import InputGuardResult, Violation
+
+        self.calls.append(question)
+        if self.trigger in question:
+            return InputGuardResult(
+                allowed=False, violations=[Violation(kind=self.kind, detail="fake")],
+                injection_score=0.99,
+            )
+        return InputGuardResult(allowed=True, injection_score=0.01)
+
+
+class FakeOutputGuard:
+    """Scriptable verdict for the output path."""
+
+    def __init__(self, *, blocked: bool = False, grounded: bool | None = True,
+                 redacted_text: str | None = None, reasons: list[str] | None = None) -> None:
+        self.blocked = blocked
+        self.grounded = grounded
+        self.redacted_text = redacted_text
+        self.reasons = reasons or (["grounding 0.10 below threshold 0.70"] if blocked else [])
+        self.calls: list[dict] = []
+        self.window_calls: list[str] = []
+
+    async def check(self, *, question: str, answer: str, grounding_sources):
+        from guards.output_guards import OutputGuardResult
+
+        self.calls.append({"question": question, "answer": answer, "sources": list(grounding_sources)})
+        return OutputGuardResult(
+            action="GUARDRAIL_INTERVENED" if (self.blocked or self.redacted_text) else "NONE",
+            text=self.redacted_text or answer, blocked=self.blocked, reasons=self.reasons,
+            grounded=self.grounded, grounding_score=0.9 if self.grounded else 0.1,
+            grounding_threshold=0.7, pii_redacted=["EMAIL"] if self.redacted_text else [],
+        )
+
+    async def check_window(self, window: str):
+        from guards.output_guards import OutputGuardResult
+
+        self.window_calls.append(window)
+        return OutputGuardResult(text=window, blocked=self.blocked, reasons=self.reasons)

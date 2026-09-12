@@ -8,18 +8,11 @@ never-hallucinate rule is expressed.
 
 from __future__ import annotations
 
-from enum import StrEnum
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from core.models import Answer, Citation, ScoredChunk
-
-
-class AnswerStatus(StrEnum):
-    ANSWERED = "answered"
-    NOT_FOUND_IN_CONTEXT = "not_found_in_context"
-    # BLOCKED_INPUT / BLOCKED_OUTPUT arrive with guardrails at M8.
+from core.models import Answer, AnswerStatus, Citation, GuardReport, ScoredChunk
 
 
 class QueryRequest(BaseModel):
@@ -78,6 +71,7 @@ class QueryResponse(BaseModel):
     usage: UsageView = Field(default_factory=UsageView)
     latency_ms: float = 0.0
     config_fingerprint: str
+    guard: GuardReport | None = None
     retrieval: list[RetrievedChunkView] | None = None
 
     @classmethod
@@ -90,11 +84,7 @@ class QueryResponse(BaseModel):
         retrieval: list[ScoredChunk] | None = None,
     ) -> Self:
         return cls(
-            status=(
-                AnswerStatus.NOT_FOUND_IN_CONTEXT
-                if answer.not_found
-                else AnswerStatus.ANSWERED
-            ),
+            status=answer.status or AnswerStatus.ANSWERED,
             answer=answer.answer,
             citations=answer.citations,
             grounded=answer.grounded,
@@ -109,6 +99,7 @@ class QueryResponse(BaseModel):
             ),
             latency_ms=latency_ms,
             config_fingerprint=fingerprint,
+            guard=answer.guard,
             retrieval=(
                 [RetrievedChunkView.from_scored(s) for s in retrieval]
                 if retrieval is not None

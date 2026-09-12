@@ -28,12 +28,19 @@ uvicorn[standard]>=0.32,<1
 # v4 is current and is itself an OpenTelemetry SDK; v3 has a different API.
 langfuse>=4.0,<5
 
+# ---- Retrieval ----
+fastembed>=0.8            # local dense (dev) + BM25 sparse encoders, ONNX
+sentence-transformers>=3.2  # cross-encoder reranker; install torch CPU-only:
+                            #   pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# ---- LLM gateway ----
+portkey-ai>=2.3
+
+# ---- Guardrails ----
+# Pulls litellm + openai transitively (~image-size concern for M10). Hub
+# telemetry is forced off in code; see guards/guardrails_ai.py.
+guardrails-ai>=0.11,<0.12
+
 # ---- Later milestones (not yet imported) ----
-# M6  hybrid retrieval  : qdrant-client[fastembed]
-# M6  reranking         : sentence-transformers>=3.2
-# M7  LLM gateway       : portkey-ai>=1.9
-# M8  input guardrails  : guardrails-ai>=0.11,<0.12
-# M8  streaming         : sse-starlette>=2.1
-# M4  evaluation        : ragas>=0.2,<0.4
-# M9  OTEL spans        : opentelemetry-sdk>=1.27
-#                         opentelemetry-instrumentation-fastapi>=0.48b0
+# M4  RAGAS tier        : ragas>=0.2,<0.4
+# M9  OTEL spans        : opentelemetry-instrumentation-fastapi>=0.48b0

@@ -105,3 +105,26 @@ def test_answer_with_citations_cannot_claim_not_found(meta):
             not_found=True,
             provider="bedrock",
         )
+
+
+def test_context_header_carries_document_identity(meta):
+    from core.models import build_context_header
+
+    header = build_context_header(meta)
+    assert "Master Direction on KYC" in header
+    assert "DOR.AML.REC.27/14.01.001/2023-24" in header
+    assert "17 Oct 2023" in header
+
+
+def test_with_context_header_changes_retrieval_text_only(meta):
+    chunk = Chunk(
+        chunk_id=make_chunk_id(meta.doc_id, ChunkStrategy.RECURSIVE, 0),
+        doc_id=meta.doc_id, text="Banks shall verify identity.", ordinal=0,
+        strategy=ChunkStrategy.RECURSIVE, meta=meta,
+    )
+    assert chunk.text_for_retrieval == chunk.text
+    ctx = chunk.with_context_header()
+    assert ctx.text == chunk.text, "prompt, citations and evidence must be untouched"
+    assert ctx.text_for_retrieval.startswith("Master Direction on KYC | ")
+    assert ctx.text_for_retrieval.endswith(chunk.text)
+    assert ctx.chunk_id == chunk.chunk_id

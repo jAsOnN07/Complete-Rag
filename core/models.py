@@ -52,6 +52,21 @@ class Citation(BaseModel):
     page: int | None = None
 
 
+def build_context_header(meta: "DocumentMeta") -> str:
+    """One line of document identity to prepend to a chunk's retrieval text.
+
+    Measured at M5: questions that key on a short span plus the document's
+    identity are only answered when the chunk carries its header context.
+    Fixed windows get this by accident of overlap; other strategies lose it.
+    """
+    parts = [meta.title]
+    if meta.circular_no:
+        parts.append(meta.circular_no)
+    if meta.issued_on:
+        parts.append(meta.issued_on.strftime("%d %b %Y"))
+    return " | ".join(parts)
+
+
 class Chunk(BaseModel):
     chunk_id: str
     doc_id: str
@@ -61,6 +76,18 @@ class Chunk(BaseModel):
     section: str | None = None
     page: int | None = None
     meta: DocumentMeta
+    # What retrieval sees (embedding, BM25, reranker). None means `text`.
+    # Set at ingest and stored in the payload so search and rerank agree.
+    retrieval_text: str | None = None
+
+    @property
+    def text_for_retrieval(self) -> str:
+        return self.retrieval_text or self.text
+
+    def with_context_header(self) -> "Chunk":
+        return self.model_copy(
+            update={"retrieval_text": f"{build_context_header(self.meta)}\n{self.text}"}
+        )
 
     @field_validator("text")
     @classmethod
@@ -90,12 +117,40 @@ class ScoredChunk(BaseModel):
         return self.chunk.chunk_id
 
 
+class AnswerStatus(StrEnum):
+    ANSWERED = "answered"
+    NOT_FOUND_IN_CONTEXT = "not_found_in_context"
+    BLOCKED_INPUT = "blocked_input"
+    BLOCKED_OUTPUT = "blocked_output"
+
+
+class GuardReport(BaseModel):
+    """What the guardrails decided. Recorded on every answer so a refusal is
+    explainable and the false-positive rate on the gold set is measurable."""
+
+    input_allowed: bool = True
+    input_violations: list[str] = Field(default_factory=list)
+    input_degraded: bool = False
+    injection_score: float | None = None
+    output_action: str | None = None
+    output_reasons: list[str] = Field(default_factory=list)
+    grounding_score: float | None = None
+    grounding_threshold: float | None = None
+    pii_redacted: list[str] = Field(default_factory=list)
+
+
+BLOCKED_INPUT_MESSAGE = "Your question could not be processed."
+BLOCKED_OUTPUT_MESSAGE = "The generated answer did not pass output checks and was withheld."
+
+
 class Answer(BaseModel):
     answer: str
     citations: list[Citation] = Field(default_factory=list)
     grounded: bool
     not_found: bool = False
     provider: str
+    status: AnswerStatus | None = None
+    guard: GuardReport | None = None
     # Labels the model emitted that were outside 1..k. A first-class quality
     # metric, not an error: it measures citation hallucination directly.
     invalid_citations: list[int] = Field(default_factory=list)
@@ -113,7 +168,28 @@ class Answer(BaseModel):
     def _not_found_implies_no_citations(self) -> Self:
         if self.not_found and self.citations:
             raise ValueError("a not_found answer must not carry citations")
+        if self.status is None:
+            self.status = (
+                AnswerStatus.NOT_FOUND_IN_CONTEXT if self.not_found else AnswerStatus.ANSWERED
+            )
         return self
+
+    @classmethod
+    def blocked_input(cls, report: GuardReport) -> Self:
+        return cls(
+            answer=BLOCKED_INPUT_MESSAGE, citations=[], grounded=True, not_found=False,
+            provider="none", status=AnswerStatus.BLOCKED_INPUT, guard=report,
+        )
+
+    @classmethod
+    def blocked_output(cls, report: GuardReport, *, provider: str, model_id: str | None,
+                       input_tokens: int, output_tokens: int, chunks_considered: int) -> Self:
+        return cls(
+            answer=BLOCKED_OUTPUT_MESSAGE, citations=[], grounded=False, not_found=False,
+            provider=provider, status=AnswerStatus.BLOCKED_OUTPUT, guard=report,
+            model_id=model_id, input_tokens=input_tokens, output_tokens=output_tokens,
+            chunks_considered=chunks_considered,
+        )
 
     @classmethod
     def not_found_response(cls, provider: str) -> Self:

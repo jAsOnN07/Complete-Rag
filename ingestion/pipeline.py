@@ -55,7 +55,10 @@ async def build_chunks(
         doc = await loader.load(path, row)
         if loader.last_stats:
             stats.append(loader.last_stats)
-        chunks.extend(await chunker.chunk(doc))
+        doc_chunks = await chunker.chunk(doc)
+        if settings.chunk_context_header:
+            doc_chunks = [c.with_context_header() for c in doc_chunks]
+        chunks.extend(doc_chunks)
     return chunks, stats
 
 
@@ -72,6 +75,7 @@ def print_report(
     print(f"strategy        : {settings.chunk_strategy.value}")
     print(f"chunk size/ovlp : {settings.chunk_size} / {settings.chunk_overlap}")
     print(f"collection      : {settings.collection_name()}")
+    print(f"context header  : {'on' if settings.chunk_context_header else 'off'}")
     print(f"documents       : {len(stats)}")
     print(f"pages           : {sum(s.pages for s in stats)}")
     print(f"chars (cleaned) : {sum(s.chars for s in stats):,}")
@@ -110,8 +114,9 @@ async def run(args: argparse.Namespace) -> int:
 
     store = build_qdrant_store(settings)
 
-    texts = [c.text for c in chunks]
-    print(f"\nembedding {len(chunks)} chunks with {embedder.model_id} ...")
+    texts = [c.text_for_retrieval for c in chunks]
+    print(f"\nembedding {len(chunks)} chunks with {embedder.model_id} "
+          f"(context header {'on' if settings.chunk_context_header else 'off'}) ...")
     vectors = await embedder.embed_documents(texts)
 
     from retrieval.bm25 import Bm25Encoder

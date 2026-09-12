@@ -32,6 +32,14 @@ SUITES: dict[str, list[tuple[str, dict[str, Any]]]] = {
         ("recursive", {"chunk_strategy": ChunkStrategy.RECURSIVE}),
         ("semantic", {"chunk_strategy": ChunkStrategy.SEMANTIC}),
     ],
+    "chunking_ctx": [
+        ("fixed", {"chunk_strategy": ChunkStrategy.FIXED, "chunk_context_header": False}),
+        ("fixed+ctx", {"chunk_strategy": ChunkStrategy.FIXED, "chunk_context_header": True}),
+        ("recursive", {"chunk_strategy": ChunkStrategy.RECURSIVE, "chunk_context_header": False}),
+        ("recursive+ctx", {"chunk_strategy": ChunkStrategy.RECURSIVE, "chunk_context_header": True}),
+        ("semantic", {"chunk_strategy": ChunkStrategy.SEMANTIC, "chunk_context_header": False}),
+        ("semantic+ctx", {"chunk_strategy": ChunkStrategy.SEMANTIC, "chunk_context_header": True}),
+    ],
     "retrieval": [
         ("dense", {"retrieval_mode": "dense", "reranker_backend": "none"}),
         ("hybrid", {"retrieval_mode": "hybrid", "reranker_backend": "none"}),
@@ -77,7 +85,7 @@ async def compare(
     suite: str, *, base: Settings, gold: GoldSet, k: int, limit: int | None
 ) -> tuple[list[dict[str, Any]], list[str]]:
     rows: list[dict[str, Any]] = []
-    extra_cols: list[str] = ["chunks"] if suite == "chunking" else []
+    extra_cols: list[str] = ["chunks"] if suite.startswith("chunking") else []
     for label, overrides in SUITES[suite]:
         settings = base.model_copy(update=overrides)
         print(f"\n=== {label}  ({settings.collection_name()}) ===")
@@ -85,7 +93,7 @@ async def compare(
 
         service = build_service(settings)
         extra: dict[str, Any] = {}
-        if suite == "chunking":
+        if suite.startswith("chunking"):
             extra["chunks"] = await service.count_points()
             if extra["chunks"] == 0:
                 print(f"  collection empty - run: CHUNK_STRATEGY={label} python -m ingestion.pipeline")
@@ -111,7 +119,7 @@ async def main_async(args: argparse.Namespace) -> int:
         "gold": f"{len(gold.questions)} questions, {len(gold.unverified())} unverified",
         "k": args.k,
     }
-    if args.suite == "chunking":
+    if args.suite.startswith("chunking"):
         constants["retrieval"] = f"{base.retrieval_mode} + {base.reranker_backend}"
         constants["chunk_size/overlap"] = f"{base.chunk_size}/{base.chunk_overlap}"
     else:

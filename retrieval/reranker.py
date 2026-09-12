@@ -74,7 +74,7 @@ class CrossEncoderReranker:
             "rerank.cross_encoder",
             input={"candidates": len(candidates), "top_n": top_n},
         ) as span:
-            pairs = [(query, c.chunk.text) for c in candidates]
+            pairs = [(query, c.chunk.text_for_retrieval) for c in candidates]
             scores = await asyncio.to_thread(self._predict_sync, pairs)
             ordered = sorted(zip(candidates, scores), key=lambda t: -t[1])
             out = _rescored(ordered, top_n)
@@ -136,7 +136,7 @@ class BedrockReranker:
         async with self._tracer.observe(
             "rerank.bedrock", input={"candidates": len(candidates), "top_n": top_n}
         ) as span:
-            texts = [c.chunk.text for c in candidates]
+            texts = [c.chunk.text_for_retrieval for c in candidates]
             try:
                 results = await asyncio.to_thread(
                     self._rerank_sync, query, texts, min(top_n, len(candidates))

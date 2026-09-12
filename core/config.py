@@ -15,6 +15,9 @@ RerankerBackend = Literal["cross_encoder", "bedrock", "none"]
 EmbeddingBackend = Literal["bedrock", "fastembed"]
 LlmBackend = Literal["portkey", "bedrock"]
 RetrievalMode = Literal["dense", "hybrid"]
+OutputGuardBackend = Literal["bedrock", "none"]
+InjectionBackend = Literal["groq_prompt_guard", "none"]
+InputGuardEngine = Literal["guardrails_ai", "native"]
 
 # The relevance threshold is only meaningful against the scale of whatever
 # produced the FINAL score, which is not always the reranker: with no reranker
@@ -60,9 +63,27 @@ class Settings(BaseSettings):
     fastembed_model: str = "BAAI/bge-small-en-v1.5"
     fastembed_dim: int = 384
 
-    # Bedrock Guardrails (output path, via standalone ApplyGuardrail)
+    # Bedrock Guardrails (output path, via standalone ApplyGuardrail). Wraps
+    # the Groq fallback path exactly as it wraps Bedrock. "none" while the
+    # account cannot invoke bedrock-runtime.
+    output_guard_backend: OutputGuardBackend = "none"
     bedrock_guardrail_id: str | None = None
     bedrock_guardrail_version: str = "DRAFT"
+    output_guard_scope: Literal["FULL", "INTERVENTIONS"] = "FULL"
+
+    # Input guardrails (Guardrails AI). The injection classifier is Groq's
+    # hosted prompt-guard, reached directly so the guard never depends on the
+    # gateway it protects.
+    input_guard_enabled: bool = True
+    # guardrails_ai composes the checks through the Guardrails AI framework
+    # (telemetry forced off); native runs the same checks without it.
+    input_guard_engine: InputGuardEngine = "guardrails_ai"
+    injection_backend: InjectionBackend = "groq_prompt_guard"
+    injection_model_id: str = "meta-llama/llama-prompt-guard-2-86m"
+    injection_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
+    # A guard that cannot run fails closed unless explicitly told otherwise.
+    input_guard_fail_open: bool = False
+    stream_window_chars: int = Field(default=300, gt=0)
 
     # Qdrant
     qdrant_url: str = "http://localhost:6333"
@@ -97,6 +118,9 @@ class Settings(BaseSettings):
     chunk_size: int = Field(default=1000, gt=0)
     chunk_overlap: int = Field(default=150, ge=0)
     semantic_breakpoint_percentile: float = Field(default=90.0, gt=0, lt=100)
+    # Prepend document identity to each chunk's retrieval text. Off by default
+    # so the M5 baseline stays reproducible; measured separately.
+    chunk_context_header: bool = False
     top_k: int = Field(default=20, gt=0)
     # dense: cosine only. hybrid: dense + BM25 sparse fused by RRF on the server.
     retrieval_mode: RetrievalMode = "dense"
@@ -112,7 +136,8 @@ class Settings(BaseSettings):
 
     @field_validator(
         "portkey_config_slug", "groq_reasoning_effort",
-        "bedrock_rerank_model_arn", "bedrock_rerank_region", mode="before",
+        "bedrock_rerank_model_arn", "bedrock_rerank_region",
+        "bedrock_guardrail_id", mode="before",
     )
     @classmethod
     def _blank_string_is_none(cls, value: object) -> object:
@@ -182,6 +207,8 @@ class Settings(BaseSettings):
         from the wrong index because the name encodes both.
         """
         strat = (strategy or self.chunk_strategy).value
+        if self.chunk_context_header:
+            strat = f"{strat}-ctx"
         return f"{self.qdrant_collection_prefix}_{strat}_{self.embed_short}"
 
     def eval_fingerprint(self) -> dict[str, object]:
@@ -190,6 +217,7 @@ class Settings(BaseSettings):
             "chunk_strategy": self.chunk_strategy.value,
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
+            "chunk_context_header": self.chunk_context_header,
             "semantic_breakpoint_percentile": (
                 self.semantic_breakpoint_percentile
                 if self.chunk_strategy is ChunkStrategy.SEMANTIC else None

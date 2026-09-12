@@ -15,7 +15,7 @@ import asyncio
 from typing import Any, AsyncIterator
 
 from core.errors import UpstreamServiceError
-from core.ports import LlmResult
+from core.ports import LlmDelta, LlmResult
 from observability.tracing import Tracer, get_tracer
 
 PROVIDER = "bedrock"
@@ -88,10 +88,55 @@ class BedrockLlmClient:
             )
             return result
 
-    async def stream(self, system: str, user: str) -> AsyncIterator[str]:
-        """Streaming lands properly at M8 alongside the windowed output guard."""
-        result = await self.complete(system, user)
-        yield result.text
+    def _converse_stream_sync(self, system: str, user: str) -> Any:
+        return self._client.converse_stream(
+            modelId=self._model_id,
+            system=[{"text": system}],
+            messages=[{"role": "user", "content": [{"text": user}]}],
+            inferenceConfig={"maxTokens": self._max_tokens, "temperature": self._temperature},
+        )
+
+    async def stream(self, system: str, user: str) -> AsyncIterator[LlmDelta]:
+        async with self._tracer.observe(
+            "llm.answer", as_type="generation",
+            input={"system_chars": len(system), "user_chars": len(user), "stream": True},
+            model=self._model_id,
+        ) as span:
+            try:
+                response = await asyncio.to_thread(self._converse_stream_sync, system, user)
+            except Exception as exc:  # noqa: BLE001
+                raise UpstreamServiceError(
+                    "bedrock", "converse_stream", f"{type(exc).__name__}: {exc}", cause=exc
+                ) from exc
+            # The event stream is a blocking iterator; drain it off the loop in
+            # pages so tokens still flow rather than arriving all at once.
+            events = response["stream"]
+            it = iter(events)
+            usage: dict[str, int] = {}
+            stop = None
+            chars = 0
+            while True:
+                event = await asyncio.to_thread(next, it, None)
+                if event is None:
+                    break
+                if "contentBlockDelta" in event:
+                    text = event["contentBlockDelta"]["delta"].get("text", "")
+                    chars += len(text)
+                    yield LlmDelta(text)
+                elif "messageStop" in event:
+                    stop = event["messageStop"].get("stopReason")
+                elif "metadata" in event:
+                    usage = event["metadata"].get("usage", {})
+            span.update(
+                output={"chars": chars},
+                usage_details={"input": usage.get("inputTokens", 0), "output": usage.get("outputTokens", 0)},
+                metadata={"provider": PROVIDER, "stop_reason": stop},
+            )
+            yield LlmDelta(
+                done=True, model_id=self._model_id, provider=PROVIDER,
+                input_tokens=usage.get("inputTokens", 0), output_tokens=usage.get("outputTokens", 0),
+                stop_reason=stop,
+            )
 
 
 def build_bedrock_llm(settings: Any = None) -> BedrockLlmClient:
@@ -187,10 +232,64 @@ class PortkeyLlmClient:
             )
             return result
 
-    async def stream(self, system: str, user: str) -> AsyncIterator[str]:
-        """Real token streaming lands at M8 with the windowed output guard."""
-        result = await self.complete(system, user)
-        yield result.text
+    async def stream(self, system: str, user: str) -> AsyncIterator[LlmDelta]:
+        from generation.gateway import provider_from_model
+
+        async with self._tracer.observe(
+            "llm.answer", as_type="generation",
+            input={"system_chars": len(system), "user_chars": len(user), "stream": True},
+            model=self._settings.bedrock_llm_model_id,
+        ) as span:
+            try:
+                stream = await self._client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    max_tokens=self._settings.llm_max_tokens,
+                    temperature=self._settings.llm_temperature,
+                    stream=True,
+                    stream_options={"include_usage": True},
+                )
+            except Exception as exc:  # noqa: BLE001
+                raise UpstreamServiceError(
+                    "portkey", "chat.completions.stream", f"{type(exc).__name__}: {exc}", cause=exc
+                ) from exc
+
+            served = None
+            stop = None
+            usage_in = usage_out = 0
+            chars = 0
+            try:
+                async for chunk in stream:
+                    served = getattr(chunk, "model", None) or served
+                    choices = getattr(chunk, "choices", None) or []
+                    if choices:
+                        delta = getattr(choices[0], "delta", None)
+                        text = getattr(delta, "content", None) or ""
+                        if text:
+                            chars += len(text)
+                            yield LlmDelta(text)
+                        stop = getattr(choices[0], "finish_reason", None) or stop
+                    usage = getattr(chunk, "usage", None)
+                    if usage:
+                        usage_in = getattr(usage, "prompt_tokens", 0) or usage_in
+                        usage_out = getattr(usage, "completion_tokens", 0) or usage_out
+            except Exception as exc:  # noqa: BLE001
+                raise UpstreamServiceError(
+                    "portkey", "chat.completions.stream", f"{type(exc).__name__}: {exc}", cause=exc
+                ) from exc
+
+            provider = provider_from_model(served, self._settings)
+            span.update(
+                output={"chars": chars, "served_model": served},
+                usage_details={"input": usage_in, "output": usage_out},
+                metadata={"provider": provider, "stop_reason": stop},
+            )
+            yield LlmDelta(
+                done=True, model_id=served or self._settings.bedrock_llm_model_id,
+                provider=provider, input_tokens=usage_in, output_tokens=usage_out, stop_reason=stop,
+            )
 
 
 def build_llm(settings: Any = None) -> PortkeyLlmClient | BedrockLlmClient:
