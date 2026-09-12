@@ -68,7 +68,7 @@ def test_fingerprint_changes_when_retrieval_config_changes():
     base = Settings(top_k=7)
     assert base.fingerprint() != Settings(top_k=8).fingerprint()
     assert base.fingerprint() != Settings(
-        top_k=7, chunk_strategy=ChunkStrategy.FIXED
+        top_k=7, chunk_strategy=ChunkStrategy.RECURSIVE
     ).fingerprint()
 
 
