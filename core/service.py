@@ -120,14 +120,14 @@ class RagService:
 def build_service(settings: Any = None) -> RagService:
     from core.config import get_settings
     from generation.llm import build_bedrock_llm
-    from retrieval.embedder import build_bedrock_embedder
+    from retrieval.embedder import build_embedder
     from retrieval.vector_store import build_qdrant_store
 
     settings = settings or get_settings()
     # No reranker is wired until M6, so the final score is raw Qdrant cosine and
     # the threshold must be read on the dense scale, not the reranker's.
     return RagService(
-        embedder=build_bedrock_embedder(settings),
+        embedder=build_embedder(settings),
         store=build_qdrant_store(settings),
         llm=build_bedrock_llm(settings),
         top_k=settings.top_k,

@@ -127,3 +127,74 @@ def build_bedrock_embedder(settings: Any = None) -> BedrockTitanEmbedder:
         model_id=settings.bedrock_embed_model_id,
         dim=settings.bedrock_embed_dim,
     )
+
+
+class FastEmbedEmbedder:
+    """Local ONNX embedder (fastembed). No network after the first model download.
+
+    A development backend that keeps retrieval, eval and tracing real while
+    Bedrock is unavailable. It is a different vector space from Titan, so it
+    always writes to its own collection - see Settings.collection_name.
+    """
+
+    def __init__(
+        self,
+        *,
+        model_name: str,
+        dim: int,
+        tracer: Tracer | None = None,
+        cache_dir: str | None = None,
+    ) -> None:
+        from fastembed import TextEmbedding
+
+        self._model_name = model_name
+        self._dim = dim
+        self._tracer = tracer or get_tracer()
+        self._model = TextEmbedding(model_name=model_name, cache_dir=cache_dir)
+
+    @property
+    def model_id(self) -> str:
+        return self._model_name
+
+    @property
+    def dim(self) -> int:
+        return self._dim
+
+    def _embed_sync(self, texts: Sequence[str]) -> list[list[float]]:
+        return [vec.tolist() for vec in self._model.embed(list(texts))]
+
+    async def embed_query(self, text: str) -> list[float]:
+        async with self._tracer.observe(
+            "embed.query", as_type="embedding", input={"chars": len(text)}
+        ) as span:
+            vector = (await asyncio.to_thread(self._embed_sync, [text]))[0]
+            span.update(
+                output={"dim": len(vector)},
+                metadata={"model_id": self._model_name, "backend": "fastembed"},
+            )
+            return vector
+
+    async def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
+        async with self._tracer.observe(
+            "embed.documents", as_type="embedding", input={"count": len(texts)}
+        ) as span:
+            vectors = await asyncio.to_thread(self._embed_sync, texts)
+            span.update(
+                output={"count": len(vectors)},
+                metadata={"model_id": self._model_name, "dim": self._dim},
+            )
+            return vectors
+
+
+def build_embedder(settings: Any = None) -> BedrockTitanEmbedder | FastEmbedEmbedder:
+    """Select the embedding backend from config. Titan unless told otherwise."""
+    if settings is None:
+        from core.config import get_settings
+
+        settings = get_settings()
+
+    if settings.embedding_backend == "fastembed":
+        return FastEmbedEmbedder(
+            model_name=settings.fastembed_model, dim=settings.fastembed_dim
+        )
+    return build_bedrock_embedder(settings)

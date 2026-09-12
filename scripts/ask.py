@@ -21,11 +21,11 @@ async def run(args: argparse.Namespace) -> int:
     settings = get_settings()
     from generation.llm import build_bedrock_llm
     from observability.tracing import get_tracer
-    from retrieval.embedder import build_bedrock_embedder
+    from retrieval.embedder import build_embedder
     from retrieval.vector_store import build_qdrant_store
 
     store = build_qdrant_store(settings)
-    embedder = build_bedrock_embedder(settings)
+    embedder = build_embedder(settings)
 
     total = await store.count()
     print(f"collection {settings.collection_name()}: {total} points\n")

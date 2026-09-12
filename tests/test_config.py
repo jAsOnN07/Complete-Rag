@@ -6,15 +6,15 @@ from core.models import ChunkStrategy
 
 def test_collection_name_is_derived_per_strategy():
     settings = Settings(qdrant_collection_prefix="circulars")
-    assert settings.collection_name(ChunkStrategy.FIXED) == "circulars_fixed"
-    assert settings.collection_name(ChunkStrategy.SEMANTIC) == "circulars_semantic"
+    assert settings.collection_name(ChunkStrategy.FIXED).startswith("circulars_fixed_")
+    assert settings.collection_name(ChunkStrategy.SEMANTIC).startswith("circulars_semantic_")
 
 
 def test_collection_name_defaults_to_active_strategy():
     settings = Settings(
         qdrant_collection_prefix="circulars", chunk_strategy=ChunkStrategy.SEMANTIC
     )
-    assert settings.collection_name() == "circulars_semantic"
+    assert settings.collection_name().startswith("circulars_semantic_")
 
 
 def test_eval_fingerprint_records_what_a_rerun_needs():
@@ -77,3 +77,33 @@ def test_fingerprint_ignores_secrets():
     a = Settings(top_k=7, qdrant_api_key="key-one").fingerprint()
     b = Settings(top_k=7, qdrant_api_key="key-two").fingerprint()
     assert a == b
+
+
+def test_embedding_backend_defaults_to_bedrock_titan():
+    """CLAUDE.md names Titan V2 as the production embedder; local is opt-in."""
+    settings = Settings()
+    assert settings.embedding_backend == "bedrock"
+    assert settings.embed_model_id == settings.bedrock_embed_model_id
+    assert settings.embed_dim == settings.bedrock_embed_dim
+
+
+def test_fastembed_backend_resolves_its_own_model_and_dim():
+    settings = Settings(embedding_backend="fastembed")
+    assert settings.embed_model_id == "BAAI/bge-small-en-v1.5"
+    assert settings.embed_dim == 384
+
+
+def test_collection_name_encodes_embedder_so_vector_spaces_never_collide():
+    """A Titan index and a bge index must never share a collection."""
+    titan = Settings(qdrant_collection_prefix="c", embedding_backend="bedrock")
+    bge = Settings(qdrant_collection_prefix="c", embedding_backend="fastembed")
+    assert titan.collection_name() != bge.collection_name()
+    assert titan.collection_name().startswith("c_recursive_")
+    assert "384" in bge.collection_name()
+
+
+def test_fingerprint_changes_with_embedding_backend():
+    assert (
+        Settings(embedding_backend="bedrock").fingerprint()
+        != Settings(embedding_backend="fastembed").fingerprint()
+    )

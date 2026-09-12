@@ -97,10 +97,10 @@ async def run(args: argparse.Namespace) -> int:
         print("nothing to index")
         return 1
 
-    from retrieval.embedder import build_bedrock_embedder
+    from retrieval.embedder import build_embedder
     from retrieval.vector_store import build_qdrant_store
 
-    embedder = build_bedrock_embedder(settings)
+    embedder = build_embedder(settings)
     store = build_qdrant_store(settings)
 
     print(f"\nembedding {len(chunks)} chunks with {embedder.model_id} ...")

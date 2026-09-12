@@ -166,5 +166,5 @@ def build_qdrant_store(
     return QdrantVectorStore(
         client=client,
         collection=settings.collection_name(),
-        dim=settings.bedrock_embed_dim,
+        dim=settings.embed_dim,
     )

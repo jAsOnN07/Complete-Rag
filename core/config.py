@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from functools import lru_cache
 from typing import Literal
 
@@ -11,6 +12,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from core.models import ChunkStrategy
 
 RerankerBackend = Literal["cross_encoder", "bedrock", "none"]
+EmbeddingBackend = Literal["bedrock", "fastembed"]
 
 # The relevance threshold is only meaningful against the scale of whatever
 # produced the FINAL score, which is not always the reranker: with no reranker
@@ -36,9 +38,18 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     aws_access_key_id: SecretStr | None = None
     aws_secret_access_key: SecretStr | None = None
-    bedrock_llm_model_id: str = "anthropic.claude-3-sonnet-20240229-v1:0"
+    # Inference-profile id: the bare model id is INFERENCE_PROFILE-only on Bedrock.
+    bedrock_llm_model_id: str = "us.anthropic.claude-sonnet-5"
     bedrock_embed_model_id: str = "amazon.titan-embed-text-v2:0"
     bedrock_embed_dim: int = 1024
+
+    # Embedding backend. Titan is the production default; fastembed is a local
+    # ONNX backend that keeps the whole dev loop real while Bedrock is
+    # unavailable. They are different vector spaces, so the collection name
+    # encodes which one produced the index.
+    embedding_backend: EmbeddingBackend = "bedrock"
+    fastembed_model: str = "BAAI/bge-small-en-v1.5"
+    fastembed_dim: int = 384
 
     # Bedrock Guardrails (output path, via standalone ApplyGuardrail)
     bedrock_guardrail_id: str | None = None
@@ -99,9 +110,33 @@ class Settings(BaseSettings):
     def resolved_relevance_threshold(self) -> float:
         return self.threshold_for(self.reranker_backend)
 
+    @property
+    def embed_model_id(self) -> str:
+        if self.embedding_backend == "fastembed":
+            return self.fastembed_model
+        return self.bedrock_embed_model_id
+
+    @property
+    def embed_dim(self) -> int:
+        if self.embedding_backend == "fastembed":
+            return self.fastembed_dim
+        return self.bedrock_embed_dim
+
+    @property
+    def embed_short(self) -> str:
+        """Collection-safe tag for the embedding space, e.g. titan-embed-text-v2-1024."""
+        tail = self.embed_model_id.split("/")[-1].split(":")[0]
+        slug = re.sub(r"[^a-z0-9]+", "-", tail.lower()).strip("-")
+        return f"{slug}-{self.embed_dim}"
+
     def collection_name(self, strategy: ChunkStrategy | None = None) -> str:
-        """One collection per chunking strategy, so A/B eval is a config flip."""
-        return f"{self.qdrant_collection_prefix}_{(strategy or self.chunk_strategy).value}"
+        """One collection per (chunking strategy, embedding space).
+
+        Both are config flips for A/B eval, and neither can ever be served
+        from the wrong index because the name encodes both.
+        """
+        strat = (strategy or self.chunk_strategy).value
+        return f"{self.qdrant_collection_prefix}_{strat}_{self.embed_short}"
 
     def eval_fingerprint(self) -> dict[str, object]:
         """Resolved config recorded in every eval result, so runs reproduce."""
@@ -116,7 +151,9 @@ class Settings(BaseSettings):
             "relevance_threshold": self.resolved_relevance_threshold,
             "relevance_threshold_dense": self.threshold_for("dense"),
             "bedrock_llm_model_id": self.bedrock_llm_model_id,
-            "bedrock_embed_model_id": self.bedrock_embed_model_id,
+            "embedding_backend": self.embedding_backend,
+            "embed_model_id": self.embed_model_id,
+            "embed_dim": self.embed_dim,
             "collection": self.collection_name(),
         }
 
