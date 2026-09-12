@@ -48,6 +48,10 @@ class RagService:
         self._relevance_threshold = relevance_threshold
         self._tracer = tracer or get_tracer()
 
+    @property
+    def reranker_active(self) -> bool:
+        return self._reranker is not None
+
     async def count_points(self) -> int:
         return await self._store.count()
 
@@ -143,6 +147,11 @@ def build_service(settings: Any = None) -> RagService:
     else:
         retriever = DenseRetriever(embedder=embedder, store=store, top_k=settings.top_k)
 
+    from retrieval.reranker import build_reranker
+
+    reranker = build_reranker(settings)
+    reranker_active = reranker.backend != "none"
+
     # The not-found gate reads whatever produces the final score - reranker if
     # wired, else RRF (vacuous) or cosine - and thresholds are per scale.
     return RagService(
@@ -150,9 +159,10 @@ def build_service(settings: Any = None) -> RagService:
         store=store,
         llm=build_llm(settings),
         retriever=retriever,
+        reranker=reranker if reranker_active else None,
         top_k=settings.top_k,
         rerank_top_n=settings.rerank_top_n,
         relevance_threshold=settings.threshold_for(
-            settings.final_score_scale(reranker_active=False)
+            settings.final_score_scale(reranker_active=reranker_active)
         ),
     )

@@ -215,7 +215,7 @@ async def run(args: argparse.Namespace) -> int:
     from core.service import build_service
 
     service = build_service(settings)
-    scale = settings.final_score_scale(reranker_active=False)
+    scale = settings.final_score_scale(reranker_active=service.reranker_active)
     threshold = settings.threshold_for(scale)
     started = time.perf_counter()
     result = EvalResult(

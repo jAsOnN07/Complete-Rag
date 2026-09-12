@@ -103,10 +103,16 @@ class Settings(BaseSettings):
     rerank_top_n: int = Field(default=5, gt=0)
     reranker_backend: RerankerBackend = "cross_encoder"
     cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    # Bedrock Rerank has a narrower regional footprint than Bedrock itself.
+    bedrock_rerank_model_arn: str | None = None
+    bedrock_rerank_region: str | None = None
     relevance_threshold: float | None = None
     max_question_chars: int = Field(default=1000, gt=0)
 
-    @field_validator("portkey_config_slug", "groq_reasoning_effort", mode="before")
+    @field_validator(
+        "portkey_config_slug", "groq_reasoning_effort",
+        "bedrock_rerank_model_arn", "bedrock_rerank_region", mode="before",
+    )
     @classmethod
     def _blank_string_is_none(cls, value: object) -> object:
         if isinstance(value, str) and not value.strip():
