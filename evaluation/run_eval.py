@@ -60,6 +60,7 @@ class RetrievalRow(BaseModel):
 class GenerationRow(BaseModel):
     question_id: str
     answer: str
+    error: str | None = None
     not_found: bool
     citations: list[str]
     invalid_citations: list[int]
@@ -154,10 +155,11 @@ def aggregate(result: EvalResult, gold: GoldSet) -> dict[str, Any]:
         out["positive_top_score_min"] = min(r.top_score or 0.0 for r in pos)
 
     if result.generation:
-        gen = result.generation
+        gen = [g for g in result.generation if g.error is None]
         gpos = [g for g in gen if not by_id[g.question_id].is_negative]
         gneg = [g for g in gen if by_id[g.question_id].is_negative]
         out["generation"] = {
+            "errors": sum(1 for g in result.generation if g.error),
             "answered_rate_positives": round(
                 M.mean([0.0 if g.not_found else 1.0 for g in gpos]), 4
             ),
@@ -233,8 +235,23 @@ async def run(args: argparse.Namespace) -> int:
         )
 
         if args.tier in ("generation", "ragas"):
+            if args.pace and result.generation:
+                await asyncio.sleep(args.pace)
             t0 = time.perf_counter()
-            answer = await service.answer_from(q.question, retrieved)
+            try:
+                answer = await service.answer_from(q.question, retrieved)
+            except Exception as exc:  # noqa: BLE001 - one failure must not lose the run
+                print(f"      generation failed: {type(exc).__name__}: {str(exc)[:120]}")
+                result.generation.append(
+                    GenerationRow(
+                        question_id=q.id, answer="", error=f"{type(exc).__name__}: {exc}"[:500],
+                        not_found=False, citations=[], invalid_citations=[],
+                        invalid_citation_rate=0.0, provider="error", model_id=None,
+                        input_tokens=0, output_tokens=0,
+                        latency_ms=round((time.perf_counter() - t0) * 1000, 1),
+                    )
+                )
+                continue
             result.generation.append(
                 GenerationRow(
                     question_id=q.id,
@@ -278,11 +295,19 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--tier", choices=["retrieval", "generation", "ragas"], default="retrieval")
     p.add_argument("--k", type=int, default=5, help="retrieval depth to score at")
     p.add_argument("--limit", type=int, default=None)
+    p.add_argument(
+        "--pace", type=float, default=None,
+        help="seconds between generation calls (default 12 for generation tier: "
+             "Groq free tier is 8k tokens/min)",
+    )
     return p
 
 
 def main() -> int:
-    return asyncio.run(run(build_parser().parse_args()))
+    args = build_parser().parse_args()
+    if args.pace is None:
+        args.pace = 12.0 if args.tier in ("generation", "ragas") else 0.0
+    return asyncio.run(run(args))
 
 
 if __name__ == "__main__":

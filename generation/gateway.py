@@ -46,6 +46,9 @@ def fallback_config(settings: Any) -> dict[str, Any]:
         groq_overrides["reasoning_effort"] = settings.groq_reasoning_effort
     return {
         "strategy": {"mode": "fallback", "on_status_codes": list(FALLBACK_STATUS_CODES)},
+        # Retries live here, not in application code. Groq's free tier is
+        # 8k tokens/minute and answers 429 with "try again in ~10s".
+        "retry": {"attempts": 3, "on_status_codes": [429, 500, 502, 503, 504]},
         "targets": [
             {
                 "override_params": {

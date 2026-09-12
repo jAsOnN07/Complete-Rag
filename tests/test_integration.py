@@ -100,7 +100,13 @@ async def test_end_to_end_query_returns_a_cited_answer(settings):
     from core.service import build_service
 
     service = build_service(settings)
-    answer = await service.answer("What are the KYC due diligence requirements?")
+    # A question the fetched corpus can actually answer (gold q003). The
+    # original "KYC due diligence" question was written before the corpus
+    # existed; the model correctly refused it, which is the not-found path
+    # working, not a retrieval failure.
+    answer = await service.answer(
+        "Which five new districts have been formed in the Union Territory of Ladakh?"
+    )
     assert answer.not_found is False, "corpus may not be indexed yet"
     assert answer.citations
     assert answer.invalid_citation_rate == 0.0
