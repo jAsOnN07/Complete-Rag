@@ -24,6 +24,17 @@ _WORD_CHAR_RE = re.compile(r"[^\W\d_]", re.UNICODE)
 _CIRCULAR_NO_RE = re.compile(r"RBI/\d{4}-\d{2,4}/\d+")
 _LONG_DATE_RE = re.compile(r"[A-Z][a-z]+\s+\d{1,2},\s+\d{4}")
 
+# Letterhead furniture that appears once per document (so the cross-page
+# repeat filter cannot catch it) and is too long for the short-line rule.
+# Measured across the corpus: address 15 docs, caution 13, url 10, rule 8.
+KNOWN_BOILERPLATE: tuple[re.Pattern[str], ...] = (
+    re.compile(r"Caution:\s*RBI never sends", re.IGNORECASE),
+    re.compile(r"^_{5,}.*_{5,}$"),
+    re.compile(r"^www\.rbi\.org\.in$", re.IGNORECASE),
+    re.compile(r"Department.*Central Office.*Mumbai", re.IGNORECASE),
+    re.compile(r"^Telephone No\.?\s*[\d-]+", re.IGNORECASE),
+)
+
 DEFAULT_HEADER_THRESHOLD = 0.6
 DEFAULT_MAX_BOILERPLATE_LINE = 80
 DEFAULT_DEVANAGARI_LINE_RATIO = 0.2
@@ -94,6 +105,8 @@ def is_letterhead_line(
     stripped = line.strip()
     if not stripped:
         return False
+    if any(p.search(stripped) for p in KNOWN_BOILERPLATE):
+        return True
     if devanagari_ratio(stripped) > ratio:
         return True
     # Short bilingual furniture (phone/email lines) sits under the ratio because

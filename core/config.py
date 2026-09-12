@@ -96,6 +96,7 @@ class Settings(BaseSettings):
     chunk_strategy: ChunkStrategy = ChunkStrategy.RECURSIVE
     chunk_size: int = Field(default=1000, gt=0)
     chunk_overlap: int = Field(default=150, ge=0)
+    semantic_breakpoint_percentile: float = Field(default=90.0, gt=0, lt=100)
     top_k: int = Field(default=20, gt=0)
     # dense: cosine only. hybrid: dense + BM25 sparse fused by RRF on the server.
     retrieval_mode: RetrievalMode = "dense"
@@ -189,6 +190,10 @@ class Settings(BaseSettings):
             "chunk_strategy": self.chunk_strategy.value,
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
+            "semantic_breakpoint_percentile": (
+                self.semantic_breakpoint_percentile
+                if self.chunk_strategy is ChunkStrategy.SEMANTIC else None
+            ),
             "top_k": self.top_k,
             "retrieval_mode": self.retrieval_mode,
             "prefetch_k": self.prefetch_k,

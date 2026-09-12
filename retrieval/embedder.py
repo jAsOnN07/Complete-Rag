@@ -144,13 +144,19 @@ class FastEmbedEmbedder:
         dim: int,
         tracer: Tracer | None = None,
         cache_dir: str | None = None,
+        threads: int | None = 4,
     ) -> None:
         from fastembed import TextEmbedding
 
         self._model_name = model_name
         self._dim = dim
         self._tracer = tracer or get_tracer()
-        self._model = TextEmbedding(model_name=model_name, cache_dir=cache_dir)
+        # Measured on an 8-thread laptop: 4 threads beat 8 (hyperthread
+        # oversubscription) and the default by ~40%. ONNX CPU inference here
+        # runs ~300 ms per 1k-char chunk, so ingest is minutes, not seconds.
+        self._model = TextEmbedding(
+            model_name=model_name, cache_dir=cache_dir, threads=threads
+        )
 
     @property
     def model_id(self) -> str:

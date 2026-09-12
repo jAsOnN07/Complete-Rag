@@ -207,56 +207,70 @@ def safe_config(settings: Settings) -> dict[str, Any]:
     return snapshot
 
 
-async def run(args: argparse.Namespace) -> int:
-    settings = get_settings()
-    gold = load_gold(Path(args.gold))
-    questions = gold.questions[: args.limit] if args.limit else gold.questions
+async def evaluate(
+    settings: Settings,
+    gold: GoldSet,
+    *,
+    tier: Tier = "retrieval",
+    k: int = 5,
+    limit: int | None = None,
+    pace: float = 0.0,
+    quiet: bool = False,
+    service: Any | None = None,
+) -> EvalResult:
+    """Run one evaluation against an explicit Settings. Pure of CLI and cache."""
+    questions = gold.questions[:limit] if limit else gold.questions
 
-    from core.service import build_service
+    if service is None:
+        from core.service import build_service
 
-    service = build_service(settings)
+        service = build_service(settings)
     scale = settings.final_score_scale(reranker_active=service.reranker_active)
     threshold = settings.threshold_for(scale)
     started = time.perf_counter()
     result = EvalResult(
         run_id=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
         started_at=datetime.now(timezone.utc).isoformat(),
-        tier=args.tier,
-        k=args.k,
+        tier=tier,
+        k=k,
         config_fingerprint=settings.fingerprint(),
         config=safe_config(settings),
-        gold_path=str(args.gold),
+        gold_path=str(GOLD_PATH),
         gold_version=gold.version,
         questions_evaluated=len(questions),
         unverified_questions=sum(1 for q in questions if q.verified_by is None),
     )
 
-    print(f"run {result.run_id}  tier={args.tier}  k={args.k}  fingerprint={result.config_fingerprint}")
-    print(f"collection={settings.collection_name()}  mode={settings.retrieval_mode}  "
-          f"threshold({scale})={threshold}")
-    print(f"{len(questions)} questions ({result.unverified_questions} unverified)\n")
+    def say(msg: str) -> None:
+        if not quiet:
+            print(msg)
+
+    say(f"run {result.run_id}  tier={tier}  k={k}  fingerprint={result.config_fingerprint}")
+    say(f"collection={settings.collection_name()}  mode={settings.retrieval_mode}  "
+        f"threshold({scale})={threshold}")
+    say(f"{len(questions)} questions ({result.unverified_questions} unverified)\n")
 
     for q in questions:
-        retrieved = await service.retrieve(q.question, top_n=args.k)
-        row = score_retrieval(q, retrieved, args.k, threshold)
+        retrieved = await service.retrieve(q.question, top_n=k)
+        row = score_retrieval(q, retrieved, k, threshold)
         result.retrieval.append(row)
         flag = ""
         if q.is_negative:
             flag = "gate ok" if row.negative_gate_correct else "GATE MISS"
-        print(
+        say(
             f"  {q.id} {q.question_type.value:<14} hit@1={row.hit_at_1:.0f} "
-            f"docR@{args.k}={row.doc_recall_at_k:.2f} mrr={row.mrr:.2f} "
+            f"docR@{k}={row.doc_recall_at_k:.2f} mrr={row.mrr:.2f} "
             f"top={row.top_score:.3f} {flag}"
         )
 
-        if args.tier in ("generation", "ragas"):
-            if args.pace and result.generation:
-                await asyncio.sleep(args.pace)
+        if tier in ("generation", "ragas"):
+            if pace and result.generation:
+                await asyncio.sleep(pace)
             t0 = time.perf_counter()
             try:
                 answer = await service.answer_from(q.question, retrieved)
             except Exception as exc:  # noqa: BLE001 - one failure must not lose the run
-                print(f"      generation failed: {type(exc).__name__}: {str(exc)[:120]}")
+                say(f"      generation failed: {type(exc).__name__}: {str(exc)[:120]}")
                 result.generation.append(
                     GenerationRow(
                         question_id=q.id, answer="", error=f"{type(exc).__name__}: {exc}"[:500],
@@ -284,17 +298,29 @@ async def run(args: argparse.Namespace) -> int:
                 )
             )
 
-    if args.tier == "ragas":
+    if tier == "ragas":
         raise SystemExit("ragas tier lands with the LLM gateway at M7")
 
     result.duration_s = round(time.perf_counter() - started, 2)
     result.aggregates = aggregate(result, gold)
+    return result
 
+
+def write_result(result: EvalResult) -> Path:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     out = RESULTS_DIR / f"{result.run_id}__{result.config_fingerprint}.json"
     out.write_text(result.model_dump_json(indent=2), encoding="utf-8")
+    return out
 
-    print(f"\n== aggregates ==")
+
+async def run(args: argparse.Namespace) -> int:
+    settings = get_settings()
+    gold = load_gold(Path(args.gold))
+    result = await evaluate(
+        settings, gold, tier=args.tier, k=args.k, limit=args.limit, pace=args.pace
+    )
+    out = write_result(result)
+    print("\n== aggregates ==")
     print(json.dumps(result.aggregates, indent=2))
     print(f"\nwrote {out}")
 

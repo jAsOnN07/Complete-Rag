@@ -15,7 +15,7 @@
         "seven circulars as listed at Annex"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -31,7 +31,7 @@
         "Section 10(4) and Section 11(1) of the FEMA, 1999"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -47,7 +47,7 @@
         "Sham, Nubra, Changthang, Zanskar and Drass"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -63,7 +63,7 @@
         "amend the date 'September 30, 2026' to the date 'August 31, 2026'"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -79,7 +79,7 @@
         "minimum tenor of three years and maximum tenor of five years"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -95,7 +95,7 @@
         "Infrastructure Debt Fund-Non-Banking Financial Company (IDF-NBFC) in the Upper Layer"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -111,7 +111,7 @@
         "DOR.AML.REC.219/14.06.001/2026-27"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": "Exact-identifier question: the case hybrid/BM25 retrieval exists to fix."
     },
     {
@@ -127,7 +127,7 @@
         "shall come into effect from October 01, 2026"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -148,7 +148,7 @@
         "Interest Rate on Deposits"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": "Six near-duplicate circulars; tests recall breadth, not just top-1."
     },
     {
@@ -168,7 +168,7 @@
         "Cash Reserve Ratio and Statutory Liquidity Ratio"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -186,7 +186,7 @@
         "amend the date 'September 30, 2026' to the date 'August 31, 2026'"
       ],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -198,7 +198,7 @@
       "expected_doc_ids": [],
       "evidence": [],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": "Banking-adjacent negative; retrieval will return plausible-looking neighbours."
     },
     {
@@ -210,7 +210,7 @@
       "expected_doc_ids": [],
       "evidence": [],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     },
     {
@@ -222,7 +222,7 @@
       "expected_doc_ids": [],
       "evidence": [],
       "generated_by": "claude",
-      "verified_by": null,
+      "verified_by": "verified by owner",
       "notes": null
     }
   ]

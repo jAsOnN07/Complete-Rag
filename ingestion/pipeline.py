@@ -30,13 +30,19 @@ def load_manifest(path: Path) -> list[dict[str, Any]]:
 
 
 async def build_chunks(
-    rows: list[dict[str, Any]], raw_dir: Path, settings: Settings
+    rows: list[dict[str, Any]], raw_dir: Path, settings: Settings, embedder: Any = None
 ) -> tuple[list[Chunk], list[ExtractionStats]]:
     loader = PdfLoader()
+    if settings.chunk_strategy.value == "semantic" and embedder is None:
+        from retrieval.embedder import build_embedder
+
+        embedder = build_embedder(settings)
     chunker = get_chunker(
         settings.chunk_strategy,
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
+        embedder=embedder,
+        breakpoint_percentile=settings.semantic_breakpoint_percentile,
     )
     chunks: list[Chunk] = []
     stats: list[ExtractionStats] = []
@@ -86,7 +92,10 @@ def print_report(
 async def run(args: argparse.Namespace) -> int:
     settings = get_settings()
     rows = load_manifest(Path(args.manifest))
-    chunks, stats = await build_chunks(rows, Path(args.raw_dir), settings)
+    from retrieval.embedder import build_embedder
+
+    embedder = build_embedder(settings) if not args.report else None
+    chunks, stats = await build_chunks(rows, Path(args.raw_dir), settings, embedder)
     print_report(chunks, stats, settings)
 
     if args.report or args.dry_run:
@@ -97,10 +106,8 @@ async def run(args: argparse.Namespace) -> int:
         print("nothing to index")
         return 1
 
-    from retrieval.embedder import build_embedder
     from retrieval.vector_store import build_qdrant_store
 
-    embedder = build_embedder(settings)
     store = build_qdrant_store(settings)
 
     texts = [c.text for c in chunks]
