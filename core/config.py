@@ -19,11 +19,15 @@ EmbeddingBackend = Literal["bedrock", "fastembed"]
 # wired the final score is raw Qdrant cosine. Keying this off the reranker
 # backend alone silently makes every query answerable (or none of them).
 _DEFAULT_THRESHOLDS: dict[str, float] = {
-    "dense": 0.35,          # Qdrant cosine similarity, 0-1
+    # Calibrated on bge-small-en-v1.5 with the seed gold set: positives bottom
+    # out at 0.66, an out-of-domain negative scores 0.46. In-domain-but-
+    # unanswerable negatives score 0.67-0.74 and CANNOT be separated by cosine
+    # alone - that decision belongs to the reranker (M6) and the LLM sentinel.
+    "dense": 0.55,
     "rrf": 0.015,           # raw RRF, just under 1/(rrf_k=60)
     "cross_encoder": 0.0,   # ms-marco logit; >0 means "more relevant than not"
     "bedrock": 0.35,        # Bedrock Rerank returns 0-1
-    "none": 0.35,           # no reranker => the dense score survives
+    "none": 0.55,           # no reranker => the dense score survives
 }
 
 

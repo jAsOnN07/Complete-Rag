@@ -39,7 +39,7 @@ def test_threshold_is_resolved_against_the_scale_that_produced_the_score():
     """With no reranker the final score is raw cosine, not a reranker score."""
     settings = Settings(reranker_backend="cross_encoder")
     assert settings.threshold_for("cross_encoder") == 0.0
-    assert settings.threshold_for("dense") == 0.35
+    assert settings.threshold_for("dense") == 0.55
     assert settings.threshold_for("rrf") == 0.015
 
 

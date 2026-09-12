@@ -1,0 +1,229 @@
+{
+  "version": 1,
+  "description": "Seed set over 45 RBI circulars (Jul-Sep 2026). Drafted from corpus text; every entry awaits human verification.",
+  "questions": [
+    {
+      "id": "q001",
+      "question": "How many circulars are being withdrawn under the review of circulars issued under FEMA, and on what grounds?",
+      "reference": "Seven circulars listed in the Annex are being withdrawn because they have ceased to be operative owing to subsequent regulatory amendments, redundancy, overlap or supersession by newer directives.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "3c471e116ed2652e"
+      ],
+      "evidence": [
+        "seven circulars as listed at Annex"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q002",
+      "question": "Under which sections of FEMA, 1999 were the directions in the circular reviewing FEMA circulars issued?",
+      "reference": "Section 10(4) and Section 11(1) of the Foreign Exchange Management Act, 1999.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "3c471e116ed2652e"
+      ],
+      "evidence": [
+        "Section 10(4) and Section 11(1) of the FEMA, 1999"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q003",
+      "question": "Which five new districts have been formed in the Union Territory of Ladakh?",
+      "reference": "Sham, Nubra, Changthang, Zanskar and Drass.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "701851e73f4db09f"
+      ],
+      "evidence": [
+        "Sham, Nubra, Changthang, Zanskar and Drass"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q004",
+      "question": "To what date was the temporary relaxation on FCNR(B) and NRE deposit interest rates for commercial banks shortened in the Third Amendment Directions of August 2026?",
+      "reference": "The end date was amended from September 30, 2026 to August 31, 2026.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "42dc19a42770e9c5"
+      ],
+      "evidence": [
+        "amend the date 'September 30, 2026' to the date 'August 31, 2026'"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q005",
+      "question": "What minimum and maximum tenor applies to the US Dollar-Rupee swap facility for fresh FCNR(B) dollar funds?",
+      "reference": "A minimum tenor of three years and a maximum tenor of five years.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "0e06210faa377d52"
+      ],
+      "evidence": [
+        "minimum tenor of three years and maximum tenor of five years"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q006",
+      "question": "For which category of NBFC is the large exposure framework being revised in the Concentration Risk Management Fourth Amendment Directions?",
+      "reference": "Infrastructure Debt Fund-NBFCs (IDF-NBFC) in the Upper Layer.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "818be885d35f9672"
+      ],
+      "evidence": [
+        "Infrastructure Debt Fund-Non-Banking Financial Company (IDF-NBFC) in the Upper Layer"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q007",
+      "question": "What is the department reference number of the UAPA Section 51A circular dated September 07, 2026 amending 2 entries of the 1267/1989 ISIL and Al-Qaida sanctions list?",
+      "reference": "DOR.AML.REC.219/14.06.001/2026-27.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "930a6fd81c4a9a19"
+      ],
+      "evidence": [
+        "DOR.AML.REC.219/14.06.001/2026-27"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": "Exact-identifier question: the case hybrid/BM25 retrieval exists to fix."
+    },
+    {
+      "id": "q008",
+      "question": "From what date do the Second Amendment Directions on interest rate on deposits for Local Area Banks come into effect?",
+      "reference": "October 01, 2026.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "a0fc37ccb9513be6"
+      ],
+      "evidence": [
+        "shall come into effect from October 01, 2026"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q009",
+      "question": "Which categories of banks received Interest Rate on Deposits amendment directions dated August 25, 2026?",
+      "reference": "Commercial Banks, Small Finance Banks, Local Area Banks, Regional Rural Banks, Urban Co-operative Banks and Rural Co-operative Banks.",
+      "question_type": "cross_circular",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "42dc19a42770e9c5",
+        "4bb899ed0c7b4a3e",
+        "d5a1b3d820cf1908",
+        "ba91859b85a8d96b",
+        "094d80f3f8c07f51",
+        "c48762bdc198f6d0"
+      ],
+      "evidence": [
+        "Interest Rate on Deposits"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": "Six near-duplicate circulars; tests recall breadth, not just top-1."
+    },
+    {
+      "id": "q010",
+      "question": "Which categories of banks received Cash Reserve Ratio and Statutory Liquidity Ratio amendment directions on August 25, 2026?",
+      "reference": "Commercial Banks, Small Finance Banks, Regional Rural Banks, Urban Co-operative Banks and Rural Co-operative Banks.",
+      "question_type": "cross_circular",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "dcfaa778462df0b7",
+        "37db1e7fe35b6021",
+        "d269e03b10e0742d",
+        "3852d340547f4655",
+        "da1a9776c73d2d18"
+      ],
+      "evidence": [
+        "Cash Reserve Ratio and Statutory Liquidity Ratio"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q011",
+      "question": "The Priority Sector Lending amendment references a swap facility for FCNR(B) deposits. What tenor range does that facility carry, and to what date was the related commercial-bank interest-rate relaxation later shortened?",
+      "reference": "The swap facility covers a minimum tenor of three years and a maximum of five years; the commercial-bank relaxation end date was shortened from September 30, 2026 to August 31, 2026.",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "0e06210faa377d52",
+        "42dc19a42770e9c5"
+      ],
+      "evidence": [
+        "minimum tenor of three years and maximum tenor of five years",
+        "amend the date 'September 30, 2026' to the date 'August 31, 2026'"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q012",
+      "question": "What repo rate did the Monetary Policy Committee set at its most recent meeting?",
+      "reference": "Not answerable from the corpus: it contains amendment directions and notifications, not MPC rate decisions.",
+      "question_type": "negative",
+      "difficulty": "medium",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": "Banking-adjacent negative; retrieval will return plausible-looking neighbours."
+    },
+    {
+      "id": "q013",
+      "question": "What are SEBI's requirements for mutual fund total expense ratios?",
+      "reference": "Not answerable: the corpus contains RBI circulars only.",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q014",
+      "question": "What is the capital city of France?",
+      "reference": "Not answerable: entirely out of domain.",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    }
+  ]
+}
