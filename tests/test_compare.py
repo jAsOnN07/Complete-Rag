@@ -15,9 +15,13 @@ def test_render_table_formats_floats_and_missing_values():
     assert lines[3].endswith("| - |")
 
 
-def test_every_suite_config_is_a_valid_settings_override():
+def test_every_suite_override_survives_model_copy_without_validation():
+    """model_copy(update=) skips validation; values must already be final types."""
     from core.config import Settings
 
+    base = Settings()
     for suite in SUITES.values():
         for _, overrides in suite:
-            Settings(**overrides)
+            copied = base.model_copy(update=overrides)
+            copied.collection_name()  # would raise on an un-coerced string enum
+            copied.fingerprint()

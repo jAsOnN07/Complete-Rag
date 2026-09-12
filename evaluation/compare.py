@@ -20,14 +20,17 @@ from pathlib import Path
 from typing import Any
 
 from core.config import Settings, get_settings
+from core.models import ChunkStrategy
 from evaluation.gold import GoldSet, load_gold
 from evaluation.run_eval import RESULTS_DIR, evaluate, write_result
 
 SUITES: dict[str, list[tuple[str, dict[str, Any]]]] = {
+    # model_copy(update=...) skips validation, so overrides must already be
+    # the final types - enums, not their string values.
     "chunking": [
-        ("fixed", {"chunk_strategy": "fixed"}),
-        ("recursive", {"chunk_strategy": "recursive"}),
-        ("semantic", {"chunk_strategy": "semantic"}),
+        ("fixed", {"chunk_strategy": ChunkStrategy.FIXED}),
+        ("recursive", {"chunk_strategy": ChunkStrategy.RECURSIVE}),
+        ("semantic", {"chunk_strategy": ChunkStrategy.SEMANTIC}),
     ],
     "retrieval": [
         ("dense", {"retrieval_mode": "dense", "reranker_backend": "none"}),
