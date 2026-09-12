@@ -153,3 +153,11 @@ async def test_upsert_rejects_mismatched_sparse_count(store, bm25):
                   strategy=ChunkStrategy.RECURSIVE, meta=meta)
     with pytest.raises(ValueError):
         await store.upsert([chunk], [[0.0] * 64], sparse=[])
+
+
+async def test_count_is_zero_for_a_missing_collection():
+    store = QdrantVectorStore(
+        client=AsyncQdrantClient(location=":memory:"), collection="never_created",
+        dim=8, tracer=RecordingTracer(),
+    )
+    assert await store.count() == 0

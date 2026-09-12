@@ -225,6 +225,10 @@ class QdrantVectorStore:
         ]
 
     async def count(self) -> int:
+        """0 for a collection that does not exist yet, not a 404 - /readyz and
+        the comparison runner both treat "nothing indexed" as a state."""
+        if not await self._client.collection_exists(self._collection):
+            return 0
         result = await self._client.count(
             collection_name=self._collection, exact=True
         )

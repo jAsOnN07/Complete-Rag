@@ -114,7 +114,10 @@ class Settings(BaseSettings):
     otel_service_name: str = "rag-system"
 
     # Retrieval / generation tuning
-    chunk_strategy: ChunkStrategy = ChunkStrategy.RECURSIVE
+    # fixed won the M5 comparison on every metric (hit@1 1.00 vs recursive
+    # 0.82, nDCG 0.99 vs 0.92) and contextual headers did not close the gap.
+    # All three remain available for reproducible comparison.
+    chunk_strategy: ChunkStrategy = ChunkStrategy.FIXED
     chunk_size: int = Field(default=1000, gt=0)
     chunk_overlap: int = Field(default=150, ge=0)
     semantic_breakpoint_percentile: float = Field(default=90.0, gt=0, lt=100)

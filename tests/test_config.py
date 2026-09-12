@@ -98,7 +98,7 @@ def test_collection_name_encodes_embedder_so_vector_spaces_never_collide():
     titan = Settings(qdrant_collection_prefix="c", embedding_backend="bedrock")
     bge = Settings(qdrant_collection_prefix="c", embedding_backend="fastembed")
     assert titan.collection_name() != bge.collection_name()
-    assert titan.collection_name().startswith("c_recursive_")
+    assert titan.collection_name().startswith("c_fixed_")
     assert "384" in bge.collection_name()
 
 

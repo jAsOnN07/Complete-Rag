@@ -97,6 +97,7 @@ async def compare(
             extra["chunks"] = await service.count_points()
             if extra["chunks"] == 0:
                 print(f"  collection empty - run: CHUNK_STRATEGY={label} python -m ingestion.pipeline")
+                rows.append({"config": f"{label} (not indexed)"})
                 continue
         result = await evaluate(settings, gold, k=k, limit=limit, quiet=True, service=service)
         out = write_result(result)
