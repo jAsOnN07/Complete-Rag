@@ -224,17 +224,35 @@ that hits real services for fractions of a cent.
 `docker/Dockerfile` is a production-only image: the deployed stack is hosted,
 so nothing runs in the container except the ~10 MB BM25 encoder, baked at
 build time. `scripts/deploy_fargate.py` drives the whole AWS side from boto3
-— CodeBuild → ECR → SSM secrets → ECS Fargate with a public IP — and is
+— image → ECR → SSM secrets → ECS Fargate with a public IP — and is
 idempotent, so it doubles as the committed record of what the deployment is.
 No Terraform by design.
 
 ```bash
-python -m scripts.deploy_fargate build      # zip -> S3 -> CodeBuild -> ECR
-python -m scripts.deploy_fargate secrets    # .env -> SSM SecureString
-python -m scripts.deploy_fargate deploy     # roles, cluster, task, service
-python -m scripts.deploy_fargate verify     # /readyz + one real /query
-python -m scripts.deploy_fargate scale 0    # stop paying
+python -m scripts.deploy_fargate build --local  # docker build here -> ECR
+python -m scripts.deploy_fargate build          # or: zip -> S3 -> CodeBuild -> ECR
+python -m scripts.deploy_fargate secrets        # .env -> SSM SecureString
+python -m scripts.deploy_fargate deploy         # roles, cluster, task, service
+python -m scripts.deploy_fargate verify         # cold start, /readyz, one real /query
+python -m scripts.deploy_fargate scale 0        # stop paying
 ```
+
+**Deployed and measured** (0.5 vCPU / 1 GB Fargate, us-east-1): image
+**442 MB**, built in 235 s (12 s on a cached rebuild); **cold start 35 s**
+from task `RUNNING` to the first healthy response (BM25 encoder load and
+guardrails imports); first `/query` **9.0 s** end to end, two resolved
+citations, `grounded: true`. The service is scaled to zero between demos —
+only the ECR image and SSM parameters persist.
+
+Two things the deployment taught. The account's CodeBuild concurrency quota
+is 0 (a support case is open), so `build --local` exists: same Dockerfile,
+built on the developer machine and pushed with a registry token that never
+touches the command line. And the first live request on Fargate returned
+**zero citations**: gpt-oss emitted `【1†L9-L12】`, the OpenAI file-citation
+form with a line-range suffix — a fourth citation syntax the parser had never
+seen. It is now accepted, with a test named after where it was found. The
+`citation_compliance` metric exists precisely because models keep inventing
+these.
 
 ## Provider notes
 

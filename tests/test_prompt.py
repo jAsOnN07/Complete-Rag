@@ -141,3 +141,18 @@ def test_parse_citations_accepts_adjacent_brackets(chunks):
     payload = PromptBuilder().build("q", chunks)
     citations, _ = parse_citations("Districts are X [1][2].", payload.label_map)
     assert len(citations) == 2
+
+
+def test_parse_citations_accepts_file_citation_style_with_line_ranges(chunks):
+    """Seen live on Fargate: gpt-oss emitted 【1†L9-L12】【2†L1-L5】 - the OpenAI
+    file-citation form with a line-range suffix. The label is the number
+    before the dagger; the suffix is noise."""
+    payload = PromptBuilder().build("q", chunks)
+    citations, invalid = parse_citations(
+        "The districts are Sham and Nubra【1†L9-L12】【2†L1-L5】.", payload.label_map
+    )
+    assert invalid == []
+    assert [c.chunk_id for c in citations] == [chunks[0].chunk.chunk_id, chunks[1].chunk.chunk_id]
+    # A suffix must not turn a valid label into a hallucinated one, nor be read as a label.
+    citations, invalid = parse_citations("See [2†source].", payload.label_map)
+    assert invalid == [] and len(citations) == 1

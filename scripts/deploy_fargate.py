@@ -1,6 +1,7 @@
-"""Build in CodeBuild, deploy to Fargate, verify, scale to zero. All boto3.
+"""Build the image, deploy to Fargate, verify, scale to zero. All boto3.
 
-    python -m scripts.deploy_fargate build      # zip -> S3 -> CodeBuild -> ECR
+    python -m scripts.deploy_fargate build          # zip -> S3 -> CodeBuild -> ECR
+    python -m scripts.deploy_fargate build --local  # docker build here -> ECR (no CodeBuild quota needed)
     python -m scripts.deploy_fargate secrets    # .env secrets -> SSM SecureString
     python -m scripts.deploy_fargate deploy     # roles, cluster, task def, service
     python -m scripts.deploy_fargate verify     # /healthz, /readyz, one /query
@@ -9,7 +10,9 @@
 
 Every step is idempotent: re-running reuses what exists. Names are prefixed
 `rag-`. No Terraform/CDK by design - this is the committed record of what the
-deployment consists of, and it runs without Docker on the developer machine.
+deployment consists of. The CodeBuild path needs no Docker on the developer
+machine; `--local` is the escape hatch for accounts whose CodeBuild
+concurrency quota is 0 (this one, at the time of writing).
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import subprocess
 import sys
 import time
 import zipfile
@@ -112,18 +116,59 @@ def zip_source(root: Path) -> bytes:
     return buf.getvalue()
 
 
-def cmd_build(settings: Settings, args: argparse.Namespace) -> int:
-    session = _session(settings)
-    account = _account(session)
-    region = settings.aws_region
-    ecr, s3, cb, iam = (session.client(x) for x in ("ecr", "s3", "codebuild", "iam"))
-
+def ensure_ecr_repo(ecr: Any) -> None:
     try:
         ecr.create_repository(repositoryName=ECR_REPO, imageScanningConfiguration={"scanOnPush": True})
         say(f"created ECR repo {ECR_REPO}")
     except ClientError as e:
         if e.response["Error"]["Code"] != "RepositoryAlreadyExistsException":
             raise
+
+
+def _docker(*argv: str, input: bytes | None = None) -> None:
+    say("  $ docker " + " ".join(a if len(a) < 80 else a[:77] + "..." for a in argv))
+    subprocess.run(["docker", *argv], check=True, input=input)
+
+
+def cmd_build_local(settings: Settings, args: argparse.Namespace) -> int:
+    """docker build on this machine, push to ECR. Same image, same tag."""
+    session = _session(settings)
+    account = _account(session)
+    region = settings.aws_region
+    ecr = session.client("ecr")
+    ensure_ecr_repo(ecr)
+    registry = f"{account}.dkr.ecr.{region}.amazonaws.com"
+    image = f"{registry}/{ECR_REPO}:{args.tag}"
+
+    auth = ecr.get_authorization_token()["authorizationData"][0]
+    import base64
+
+    password = base64.b64decode(auth["authorizationToken"]).split(b":", 1)[1]
+    # The token never touches the command line or the log: docker reads it from stdin.
+    _docker("login", "--username", "AWS", "--password-stdin", registry, input=password)
+
+    started = time.perf_counter()
+    _docker("build", "--platform", "linux/amd64", "-f", "docker/Dockerfile", "-t", image, ".")
+    say(f"built in {time.perf_counter() - started:.0f}s")
+    size = subprocess.run(
+        ["docker", "image", "inspect", image, "--format", "{{.Size}}"], check=True, capture_output=True, text=True
+    ).stdout.strip()
+    say(f"image size: {int(size) / 1e6:.0f} MB (uncompressed)")
+    _docker("push", image)
+    digest = ecr.describe_images(repositoryName=ECR_REPO, imageIds=[{"imageTag": args.tag}])["imageDetails"][0]
+    say(f"pushed {image}  digest={digest['imageDigest'][:19]}  "
+        f"compressed={digest['imageSizeInBytes'] / 1e6:.0f} MB")
+    return 0
+
+
+def cmd_build(settings: Settings, args: argparse.Namespace) -> int:
+    if args.local:
+        return cmd_build_local(settings, args)
+    session = _session(settings)
+    account = _account(session)
+    region = settings.aws_region
+    ecr, s3, cb, iam = (session.client(x) for x in ("ecr", "s3", "codebuild", "iam"))
+    ensure_ecr_repo(ecr)
     registry = f"{account}.dkr.ecr.{region}.amazonaws.com"
     image_repo = f"{registry}/{ECR_REPO}"
 
@@ -273,9 +318,19 @@ def cmd_deploy(settings: Settings, args: argparse.Namespace) -> int:
         ]},
     )
 
+    # A fresh account has no ECS service-linked role until something creates
+    # it; CreateCluster then fails with "Unable to assume the service linked role".
+    try:
+        iam.create_service_linked_role(AWSServiceName="ecs.amazonaws.com")
+        say("  created service-linked role AWSServiceRoleForECS; waiting for IAM propagation")
+        time.sleep(12)
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "InvalidInput":  # already exists
+            raise
+
     try:
         ecs.create_cluster(clusterName=CLUSTER, capacityProviders=["FARGATE"])
-        say(f"  created cluster {CLUSTER}")
+        say(f"  cluster {CLUSTER} ready")  # CreateCluster is idempotent by name
     except ClientError as e:
         if "already exists" not in str(e):
             raise
@@ -367,12 +422,31 @@ def _task_ip(session: boto3.Session) -> tuple[str | None, str]:
 def cmd_verify(settings: Settings, args: argparse.Namespace) -> int:
     import httpx
 
-    ip, status = _task_ip(_session(settings))
+    session = _session(settings)
+    ip, status = _task_ip(session)
     if not ip:
         say(f"no running task ({status})")
         return 1
     base = f"http://{ip}:{PORT}"
     with httpx.Client(timeout=120) as c:
+        # Cold start: from the task's RUNNING timestamp to the first 200 from
+        # /healthz. Polled, so `verify` right after `deploy` measures it
+        # instead of failing on a connection refused during startup.
+        started_at = _task_started_at(session)
+        deadline = time.time() + 180
+        while True:
+            try:
+                r = c.get(base + "/healthz", timeout=5)
+                if r.status_code == 200:
+                    break
+            except httpx.HTTPError:
+                pass
+            if time.time() > deadline:
+                say("app did not become healthy within 180s")
+                return 1
+            time.sleep(3)
+        if started_at:
+            say(f"cold start: {time.time() - started_at.timestamp():.0f}s from task RUNNING to first healthy response")
         for path in ("/healthz", "/readyz"):
             r = c.get(base + path)
             say(f"GET {path} -> {r.status_code} {r.text[:160]}")
@@ -385,6 +459,14 @@ def cmd_verify(settings: Settings, args: argparse.Namespace) -> int:
         say(f"usage: {body.get('usage')}")
         say(f"citations: {[(c_['circular_no'], c_['page']) for c_ in body.get('citations', [])]}")
     return 0
+
+
+def _task_started_at(session: boto3.Session) -> Any:
+    ecs = session.client("ecs")
+    arns = ecs.list_tasks(cluster=CLUSTER, serviceName=SERVICE, desiredStatus="RUNNING")["taskArns"]
+    if not arns:
+        return None
+    return ecs.describe_tasks(cluster=CLUSTER, tasks=arns[:1])["tasks"][0].get("startedAt")
 
 
 def cmd_scale(settings: Settings, args: argparse.Namespace) -> int:
@@ -415,6 +497,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build"); b.add_argument("--tag", default="latest")
+    b.add_argument("--local", action="store_true", help="docker build on this machine instead of CodeBuild")
     sub.add_parser("secrets")
     d = sub.add_parser("deploy"); d.add_argument("--tag", default="latest")
     v = sub.add_parser("verify"); v.add_argument("--question", default=None)

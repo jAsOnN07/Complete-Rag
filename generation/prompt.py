@@ -21,7 +21,10 @@ PROMPT_VERSION = "v1"
 NOT_FOUND_SENTINEL = "NOT_FOUND_IN_CONTEXT"
 
 # ASCII [n] and CJK fullwidth 【n】 - some models (gpt-oss) emit the latter.
-_LABEL_RE = re.compile(r"[\[【]([\d\s,]+)[\]】]")
+# Labels arrive as [1], [1, 2], 【5】 (gpt-oss, CJK fullwidth) and 【1†L9-L12】
+# (the OpenAI file-citation form with a line-range suffix, seen live). The
+# label is the digits before any dagger; whatever follows it is dropped.
+_LABEL_RE = re.compile(r"[\[【]([\d\s,]+)(?:†[^\]】]*)?[\]】]")
 
 SYSTEM_PROMPT = f"""You answer questions about Indian banking regulation using ONLY the \
 numbered source excerpts provided.
