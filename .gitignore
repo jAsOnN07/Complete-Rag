@@ -31,7 +31,8 @@ htmlcov/
 # Corpus and generated artifacts
 data/*
 !data/manifest.json
-evaluation/results/
+evaluation/results/*
+!evaluation/results/published/
 qdrant_storage/
 *.log
 

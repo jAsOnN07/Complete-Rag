@@ -57,6 +57,9 @@ def create_app(service: object | None = None) -> FastAPI:
     )
     app.state.service = service
     app.include_router(router)
+    from api.ui_routes import router as ui_router
+
+    app.include_router(ui_router)
 
     # Tracer first (it installs the shared provider), then HTTP instrumentation
     # on that provider, so request spans are the root of every trace.

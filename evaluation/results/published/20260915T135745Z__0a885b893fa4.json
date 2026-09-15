@@ -1,0 +1,1012 @@
+{
+  "run_id": "20260915T135745Z",
+  "started_at": "2026-09-15T13:57:45.562773+00:00",
+  "tier": "generation",
+  "k": 5,
+  "config_fingerprint": "0a885b893fa4",
+  "config": {
+    "chunk_strategy": "fixed",
+    "chunk_size": 1000,
+    "chunk_overlap": 150,
+    "chunk_context_header": false,
+    "semantic_breakpoint_percentile": null,
+    "top_k": 20,
+    "retrieval_mode": "hybrid",
+    "prefetch_k": 40,
+    "rerank_top_n": 5,
+    "reranker_backend": "cohere",
+    "reranker_model": "rerank-v3.5",
+    "relevance_threshold": 0.3,
+    "relevance_threshold_dense": 0.55,
+    "llm_primary_provider": "@google",
+    "primary_model_id": "gemini-3.5-flash",
+    "llm_backend": "portkey",
+    "groq_model_id": "openai/gpt-oss-120b",
+    "embedding_backend": "cohere",
+    "embed_model_id": "embed-v4.0",
+    "embed_dim": 1024,
+    "collection": "rbi_circulars_fixed_embed-v4-0-1024",
+    "aws_region": "us-east-1",
+    "qdrant_url": "https://02cd1cb1-ad5f-40a9-9a1d-6d92a98121ba.us-east-1-1.aws.cloud.qdrant.io",
+    "langfuse_host": "https://us.cloud.langfuse.com",
+    "label": "generation, 14 verified, Gemini 3.5 Flash"
+  },
+  "gold_path": "evaluation\\gold_set.json",
+  "gold_version": 1,
+  "questions_evaluated": 14,
+  "unverified_questions": 0,
+  "retrieval": [
+    {
+      "question_id": "q001",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "3c471e116ed2652e::fixed::0",
+        "3c471e116ed2652e::fixed::1",
+        "6ca3565b0b654cf0::fixed::0",
+        "bb09402e295cc81d::fixed::1",
+        "bb09402e295cc81d::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "3c471e116ed2652e",
+        "3c471e116ed2652e",
+        "6ca3565b0b654cf0",
+        "bb09402e295cc81d",
+        "bb09402e295cc81d"
+      ],
+      "scores": [
+        0.9347,
+        0.3538,
+        0.1087,
+        0.0897,
+        0.0355
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.93468803,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q002",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "3c471e116ed2652e::fixed::0",
+        "3c471e116ed2652e::fixed::1",
+        "bb09402e295cc81d::fixed::1",
+        "8afe31d59d55ae6b::fixed::3",
+        "e00e678c55083637::fixed::3"
+      ],
+      "retrieved_doc_ids": [
+        "3c471e116ed2652e",
+        "3c471e116ed2652e",
+        "bb09402e295cc81d",
+        "8afe31d59d55ae6b",
+        "e00e678c55083637"
+      ],
+      "scores": [
+        0.9341,
+        0.7445,
+        0.7348,
+        0.0827,
+        0.0797
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9341134,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q003",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "701851e73f4db09f::fixed::0",
+        "701851e73f4db09f::fixed::1",
+        "0e06210faa377d52::fixed::1",
+        "3711b46aab5e491b::fixed::2",
+        "e49848a3372c2eb1::fixed::2"
+      ],
+      "retrieved_doc_ids": [
+        "701851e73f4db09f",
+        "701851e73f4db09f",
+        "0e06210faa377d52",
+        "3711b46aab5e491b",
+        "e49848a3372c2eb1"
+      ],
+      "scores": [
+        0.9576,
+        0.5182,
+        0.032,
+        0.0231,
+        0.0188
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.95763195,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q004",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "42dc19a42770e9c5::fixed::0",
+        "d5a1b3d820cf1908::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "ba91859b85a8d96b::fixed::0",
+        "094d80f3f8c07f51::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "42dc19a42770e9c5",
+        "d5a1b3d820cf1908",
+        "4bb899ed0c7b4a3e",
+        "ba91859b85a8d96b",
+        "094d80f3f8c07f51"
+      ],
+      "scores": [
+        0.9519,
+        0.9408,
+        0.9338,
+        0.9335,
+        0.9316
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.95186776,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q005",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "0e06210faa377d52::fixed::0",
+        "dcfaa778462df0b7::fixed::0",
+        "da1a9776c73d2d18::fixed::0",
+        "3852d340547f4655::fixed::0",
+        "d269e03b10e0742d::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "0e06210faa377d52",
+        "dcfaa778462df0b7",
+        "da1a9776c73d2d18",
+        "3852d340547f4655",
+        "d269e03b10e0742d"
+      ],
+      "scores": [
+        0.9528,
+        0.7498,
+        0.7494,
+        0.7479,
+        0.7441
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.95282507,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q006",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "818be885d35f9672::fixed::0",
+        "818be885d35f9672::fixed::1",
+        "efc8a5dba737c964::fixed::137",
+        "65e695f10885c03a::fixed::7",
+        "65e695f10885c03a::fixed::1"
+      ],
+      "retrieved_doc_ids": [
+        "818be885d35f9672",
+        "818be885d35f9672",
+        "efc8a5dba737c964",
+        "65e695f10885c03a",
+        "65e695f10885c03a"
+      ],
+      "scores": [
+        0.9499,
+        0.8758,
+        0.3355,
+        0.3114,
+        0.2797
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.94989765,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q007",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "930a6fd81c4a9a19::fixed::0",
+        "e2ef091f06015299::fixed::0",
+        "930a6fd81c4a9a19::fixed::1",
+        "122f068ed7bc1748::fixed::0",
+        "090bb70d649aad78::fixed::1"
+      ],
+      "retrieved_doc_ids": [
+        "930a6fd81c4a9a19",
+        "e2ef091f06015299",
+        "930a6fd81c4a9a19",
+        "122f068ed7bc1748",
+        "090bb70d649aad78"
+      ],
+      "scores": [
+        0.9055,
+        0.8022,
+        0.7964,
+        0.7954,
+        0.7839
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        false,
+        true,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9055316,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q008",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "a0fc37ccb9513be6::fixed::1",
+        "a0fc37ccb9513be6::fixed::0",
+        "720c7368235a4ae8::fixed::1",
+        "82c9ad9407cba71a::fixed::1",
+        "b0da0b220cdd7250::fixed::1"
+      ],
+      "retrieved_doc_ids": [
+        "a0fc37ccb9513be6",
+        "a0fc37ccb9513be6",
+        "720c7368235a4ae8",
+        "82c9ad9407cba71a",
+        "b0da0b220cdd7250"
+      ],
+      "scores": [
+        0.9443,
+        0.8952,
+        0.8844,
+        0.8722,
+        0.8639
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9442644,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q009",
+      "question_type": "cross_circular",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "094d80f3f8c07f51::fixed::0",
+        "ba91859b85a8d96b::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "c48762bdc198f6d0::fixed::0",
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "094d80f3f8c07f51",
+        "ba91859b85a8d96b",
+        "4bb899ed0c7b4a3e",
+        "c48762bdc198f6d0",
+        "42dc19a42770e9c5"
+      ],
+      "scores": [
+        0.9165,
+        0.9158,
+        0.9149,
+        0.9129,
+        0.9077
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "doc_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 0.8333333333333334,
+      "doc_recall_at_k": 0.8333333333333334,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9165366,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q010",
+      "question_type": "cross_circular",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "da1a9776c73d2d18::fixed::0",
+        "3852d340547f4655::fixed::0",
+        "d269e03b10e0742d::fixed::0",
+        "37db1e7fe35b6021::fixed::0",
+        "dcfaa778462df0b7::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "da1a9776c73d2d18",
+        "3852d340547f4655",
+        "d269e03b10e0742d",
+        "37db1e7fe35b6021",
+        "dcfaa778462df0b7"
+      ],
+      "scores": [
+        0.9119,
+        0.9104,
+        0.9069,
+        0.901,
+        0.8955
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "doc_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9119436,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q011",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "0e06210faa377d52::fixed::0",
+        "42dc19a42770e9c5::fixed::0",
+        "d5a1b3d820cf1908::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "ba91859b85a8d96b::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "0e06210faa377d52",
+        "42dc19a42770e9c5",
+        "d5a1b3d820cf1908",
+        "4bb899ed0c7b4a3e",
+        "ba91859b85a8d96b"
+      ],
+      "scores": [
+        0.8636,
+        0.7216,
+        0.6696,
+        0.6646,
+        0.6477
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.86358756,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q012",
+      "question_type": "negative",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "efc8a5dba737c964::fixed::173",
+        "dcfaa778462df0b7::fixed::0",
+        "e49848a3372c2eb1::fixed::0",
+        "d0aa9ff14711eaf8::fixed::0",
+        "a0fc37ccb9513be6::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "efc8a5dba737c964",
+        "dcfaa778462df0b7",
+        "e49848a3372c2eb1",
+        "d0aa9ff14711eaf8",
+        "a0fc37ccb9513be6"
+      ],
+      "scores": [
+        0.0441,
+        0.0422,
+        0.0408,
+        0.04,
+        0.0392
+      ],
+      "chunk_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 0.0,
+      "chunk_recall_at_k": 0.0,
+      "doc_recall_at_k": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_k": 0.0,
+      "top_score": 0.044138066,
+      "negative_gate_correct": true
+    },
+    {
+      "question_id": "q013",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "efc8a5dba737c964::fixed::193",
+        "efc8a5dba737c964::fixed::13",
+        "efc8a5dba737c964::fixed::19",
+        "efc8a5dba737c964::fixed::102",
+        "efc8a5dba737c964::fixed::107"
+      ],
+      "retrieved_doc_ids": [
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964"
+      ],
+      "scores": [
+        0.0871,
+        0.0769,
+        0.0724,
+        0.0649,
+        0.0584
+      ],
+      "chunk_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 0.0,
+      "chunk_recall_at_k": 0.0,
+      "doc_recall_at_k": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_k": 0.0,
+      "top_score": 0.0870737,
+      "negative_gate_correct": true
+    },
+    {
+      "question_id": "q014",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "efc8a5dba737c964::fixed::171",
+        "efc8a5dba737c964::fixed::101",
+        "efc8a5dba737c964::fixed::93",
+        "efc8a5dba737c964::fixed::79",
+        "efc8a5dba737c964::fixed::90"
+      ],
+      "retrieved_doc_ids": [
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964"
+      ],
+      "scores": [
+        0.0587,
+        0.036,
+        0.0324,
+        0.0322,
+        0.0322
+      ],
+      "chunk_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 0.0,
+      "chunk_recall_at_k": 0.0,
+      "doc_recall_at_k": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_k": 0.0,
+      "top_score": 0.058674112,
+      "negative_gate_correct": true
+    }
+  ],
+  "generation": [
+    {
+      "question_id": "q001",
+      "answer": "Under the review, seven circulars are being withdrawn [1]. They are being withdrawn on the grounds that they \"have ceased to be operative owing to subsequent regulatory amendments, redundancy, overlap or supersession by newer directives\" [1].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "3c471e116ed2652e::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 925,
+      "output_tokens": 482,
+      "latency_ms": 3480.8,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q002",
+      "answer": "The directions in the circular reviewing FEMA circulars were issued under Section 10(4) and Section 11(1) of the FEMA, 1999 (42 of 1999) [1] [2].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "3c471e116ed2652e::fixed::0",
+        "3c471e116ed2652e::fixed::1"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 1088,
+      "output_tokens": 355,
+      "latency_ms": 4393.9,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q003",
+      "answer": "The five new districts formed in the Union Territory of Ladakh are Sham, Nubra, Changthang, Zanskar, and Drass [1].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "701851e73f4db09f::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 828,
+      "output_tokens": 495,
+      "latency_ms": 4669.3,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q004",
+      "answer": "The temporary relaxation on FCNR(B) and NRE deposit interest rates for commercial banks was shortened to August 31, 2026 [1].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 2076,
+      "output_tokens": 338,
+      "latency_ms": 4055.3,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q005",
+      "answer": "The US Dollar-Rupee swap facility for fresh FCNR (B) dollar funds applies to funds \"mobilised for a minimum tenor of three years and maximum tenor of five years\" [1].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "0e06210faa377d52::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 1916,
+      "output_tokens": 364,
+      "latency_ms": 5860.0,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q006",
+      "answer": "The large exposure framework is being revised for the \"Infrastructure Debt Fund-Non-Banking Financial Company (IDF-NBFC) in the Upper Layer\" [1].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "818be885d35f9672::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 1436,
+      "output_tokens": 376,
+      "latency_ms": 13365.0,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q007",
+      "answer": "The department reference number of the circular is DOR.AML.REC.219/14.06.001/2026-27 (with RBI circular number RBI/2026-27/253) [1].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "930a6fd81c4a9a19::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 2122,
+      "output_tokens": 728,
+      "latency_ms": 11827.1,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q008",
+      "answer": "The Reserve Bank of India (Local Area Banks – Interest Rate on Deposits) Second Amendment Directions, 2026 shall come into effect from October 01, 2026 [1].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "a0fc37ccb9513be6::fixed::1"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 1731,
+      "output_tokens": 248,
+      "latency_ms": 3405.8,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q009",
+      "answer": "Based on the provided excerpts, the categories of banks that received Interest Rate on Deposits amendment directions dated August 25, 2026, are:\n\n1. **Urban Co-operative Banks** [1]\n2. **Regional Rural Banks** [2]\n3. **Small Finance Banks** [3]\n4. **Rural Co-operative Banks** [4]\n5. **Commercial Banks** [5]",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "094d80f3f8c07f51::fixed::0",
+        "ba91859b85a8d96b::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "c48762bdc198f6d0::fixed::0",
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 2062,
+      "output_tokens": 574,
+      "latency_ms": 3550.1,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q010",
+      "answer": "On August 25, 2026, Cash Reserve Ratio and Statutory Liquidity Ratio amendment directions were issued to the following categories of banks:\n\n* **Rural Co-operative Banks** [1]\n* **Urban Co-operative Banks** [2]\n* **Regional Rural Banks** [3]\n* **Small Finance Banks** [4]\n* **Commercial Banks** [5]",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "da1a9776c73d2d18::fixed::0",
+        "3852d340547f4655::fixed::0",
+        "d269e03b10e0742d::fixed::0",
+        "37db1e7fe35b6021::fixed::0",
+        "dcfaa778462df0b7::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "google",
+      "model_id": "gemini-3.5-flash",
+      "input_tokens": 1892,
+      "output_tokens": 695,
+      "latency_ms": 4172.7,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q011",
+      "answer": "The swap facility for fresh FCNR (B) deposits is to be offered for a minimum tenor of three years and a maximum tenor of five years [1].  \n\nThe temporary relaxation on interest‑rate ceilings for commercial banks was later revised to end on 31 August 2026 [2].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "0e06210faa377d52::fixed::0",
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1889,
+      "output_tokens": 122,
+      "latency_ms": 41577.3,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q012",
+      "answer": "I could not find an answer to that in the indexed circulars.",
+      "error": null,
+      "not_found": true,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "none",
+      "model_id": null,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "latency_ms": 150.2,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q013",
+      "answer": "I could not find an answer to that in the indexed circulars.",
+      "error": null,
+      "not_found": true,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "none",
+      "model_id": null,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "latency_ms": 145.6,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q014",
+      "answer": "I could not find an answer to that in the indexed circulars.",
+      "error": null,
+      "not_found": true,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "none",
+      "model_id": null,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "latency_ms": 150.8,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    }
+  ],
+  "aggregates": {
+    "retrieval": {
+      "n": 11,
+      "hit@1": 1.0,
+      "chunk_recall@5": 0.9848,
+      "doc_recall@5": 0.9848,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    "by_type": {
+      "single_hop": {
+        "n": 8,
+        "hit@1": 1.0,
+        "chunk_recall@5": 1.0,
+        "doc_recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "cross_circular": {
+        "n": 2,
+        "hit@1": 1.0,
+        "chunk_recall@5": 0.9167,
+        "doc_recall@5": 0.9167,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "multi_hop": {
+        "n": 1,
+        "hit@1": 1.0,
+        "chunk_recall@5": 1.0,
+        "doc_recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    "negative_gate_accuracy": 1.0,
+    "negative_top_scores": [
+      0.044138066,
+      0.0870737,
+      0.058674112
+    ],
+    "positive_top_score_min": 0.86358756,
+    "positive_gate_misses": [],
+    "generation": {
+      "errors": 0,
+      "answered_rate_positives": 1.0,
+      "not_found_accuracy_negatives": 1.0,
+      "invalid_citation_rate": 0.0,
+      "citation_compliance": 1.0,
+      "mean_latency_ms": 7200.3,
+      "total_input_tokens": 17965,
+      "total_output_tokens": 4777
+    }
+  },
+  "duration_s": 212.04,
+  "ragas": null
+}

@@ -1,0 +1,1153 @@
+{
+  "run_id": "20260915T152740Z",
+  "started_at": "2026-09-15T15:27:40.945160+00:00",
+  "tier": "ragas",
+  "k": 5,
+  "config_fingerprint": "0a885b893fa4",
+  "config": {
+    "chunk_strategy": "fixed",
+    "chunk_size": 1000,
+    "chunk_overlap": 150,
+    "chunk_context_header": false,
+    "semantic_breakpoint_percentile": null,
+    "top_k": 20,
+    "retrieval_mode": "hybrid",
+    "prefetch_k": 40,
+    "rerank_top_n": 5,
+    "reranker_backend": "cohere",
+    "reranker_model": "rerank-v3.5",
+    "relevance_threshold": 0.3,
+    "relevance_threshold_dense": 0.55,
+    "llm_primary_provider": "@google",
+    "primary_model_id": "gemini-3.5-flash",
+    "llm_backend": "portkey",
+    "groq_model_id": "openai/gpt-oss-120b",
+    "embedding_backend": "cohere",
+    "embed_model_id": "embed-v4.0",
+    "embed_dim": 1024,
+    "collection": "rbi_circulars_fixed_embed-v4-0-1024",
+    "aws_region": "us-east-1",
+    "qdrant_url": "https://02cd1cb1-ad5f-40a9-9a1d-6d92a98121ba.us-east-1-1.aws.cloud.qdrant.io",
+    "langfuse_host": "https://us.cloud.langfuse.com",
+    "label": "RAGAS, 14 verified, answers+judge gpt-oss-120b (Gemini quota exhausted)"
+  },
+  "gold_path": "evaluation\\gold_set.json",
+  "gold_version": 1,
+  "questions_evaluated": 14,
+  "unverified_questions": 0,
+  "retrieval": [
+    {
+      "question_id": "q001",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "3c471e116ed2652e::fixed::0",
+        "3c471e116ed2652e::fixed::1",
+        "6ca3565b0b654cf0::fixed::0",
+        "bb09402e295cc81d::fixed::1",
+        "bb09402e295cc81d::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "3c471e116ed2652e",
+        "3c471e116ed2652e",
+        "6ca3565b0b654cf0",
+        "bb09402e295cc81d",
+        "bb09402e295cc81d"
+      ],
+      "scores": [
+        0.9347,
+        0.3538,
+        0.1087,
+        0.0897,
+        0.0355
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.93468803,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q002",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "3c471e116ed2652e::fixed::0",
+        "3c471e116ed2652e::fixed::1",
+        "bb09402e295cc81d::fixed::1",
+        "8afe31d59d55ae6b::fixed::3",
+        "e00e678c55083637::fixed::3"
+      ],
+      "retrieved_doc_ids": [
+        "3c471e116ed2652e",
+        "3c471e116ed2652e",
+        "bb09402e295cc81d",
+        "8afe31d59d55ae6b",
+        "e00e678c55083637"
+      ],
+      "scores": [
+        0.9341,
+        0.7445,
+        0.7348,
+        0.0827,
+        0.0797
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9341134,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q003",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "701851e73f4db09f::fixed::0",
+        "701851e73f4db09f::fixed::1",
+        "0e06210faa377d52::fixed::1",
+        "3711b46aab5e491b::fixed::2",
+        "e49848a3372c2eb1::fixed::2"
+      ],
+      "retrieved_doc_ids": [
+        "701851e73f4db09f",
+        "701851e73f4db09f",
+        "0e06210faa377d52",
+        "3711b46aab5e491b",
+        "e49848a3372c2eb1"
+      ],
+      "scores": [
+        0.9576,
+        0.5182,
+        0.032,
+        0.0231,
+        0.0188
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.95763195,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q004",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "42dc19a42770e9c5::fixed::0",
+        "d5a1b3d820cf1908::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "ba91859b85a8d96b::fixed::0",
+        "094d80f3f8c07f51::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "42dc19a42770e9c5",
+        "d5a1b3d820cf1908",
+        "4bb899ed0c7b4a3e",
+        "ba91859b85a8d96b",
+        "094d80f3f8c07f51"
+      ],
+      "scores": [
+        0.9519,
+        0.9408,
+        0.9338,
+        0.9335,
+        0.9316
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.95186776,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q005",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "0e06210faa377d52::fixed::0",
+        "dcfaa778462df0b7::fixed::0",
+        "da1a9776c73d2d18::fixed::0",
+        "3852d340547f4655::fixed::0",
+        "d269e03b10e0742d::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "0e06210faa377d52",
+        "dcfaa778462df0b7",
+        "da1a9776c73d2d18",
+        "3852d340547f4655",
+        "d269e03b10e0742d"
+      ],
+      "scores": [
+        0.9528,
+        0.7498,
+        0.7494,
+        0.7479,
+        0.7441
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.95282507,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q006",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "818be885d35f9672::fixed::0",
+        "818be885d35f9672::fixed::1",
+        "efc8a5dba737c964::fixed::137",
+        "65e695f10885c03a::fixed::7",
+        "65e695f10885c03a::fixed::1"
+      ],
+      "retrieved_doc_ids": [
+        "818be885d35f9672",
+        "818be885d35f9672",
+        "efc8a5dba737c964",
+        "65e695f10885c03a",
+        "65e695f10885c03a"
+      ],
+      "scores": [
+        0.9499,
+        0.8758,
+        0.3357,
+        0.3114,
+        0.2799
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.94989765,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q007",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "930a6fd81c4a9a19::fixed::0",
+        "e2ef091f06015299::fixed::0",
+        "930a6fd81c4a9a19::fixed::1",
+        "122f068ed7bc1748::fixed::0",
+        "090bb70d649aad78::fixed::1"
+      ],
+      "retrieved_doc_ids": [
+        "930a6fd81c4a9a19",
+        "e2ef091f06015299",
+        "930a6fd81c4a9a19",
+        "122f068ed7bc1748",
+        "090bb70d649aad78"
+      ],
+      "scores": [
+        0.9055,
+        0.8022,
+        0.7964,
+        0.7954,
+        0.7839
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        false,
+        true,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9055316,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q008",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "a0fc37ccb9513be6::fixed::1",
+        "a0fc37ccb9513be6::fixed::0",
+        "720c7368235a4ae8::fixed::1",
+        "82c9ad9407cba71a::fixed::1",
+        "b0da0b220cdd7250::fixed::1"
+      ],
+      "retrieved_doc_ids": [
+        "a0fc37ccb9513be6",
+        "a0fc37ccb9513be6",
+        "720c7368235a4ae8",
+        "82c9ad9407cba71a",
+        "b0da0b220cdd7250"
+      ],
+      "scores": [
+        0.9443,
+        0.8952,
+        0.8844,
+        0.8722,
+        0.8639
+      ],
+      "chunk_rel": [
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9442644,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q009",
+      "question_type": "cross_circular",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "094d80f3f8c07f51::fixed::0",
+        "ba91859b85a8d96b::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "c48762bdc198f6d0::fixed::0",
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "094d80f3f8c07f51",
+        "ba91859b85a8d96b",
+        "4bb899ed0c7b4a3e",
+        "c48762bdc198f6d0",
+        "42dc19a42770e9c5"
+      ],
+      "scores": [
+        0.9165,
+        0.9158,
+        0.9149,
+        0.9129,
+        0.9077
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "doc_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 0.8333333333333334,
+      "doc_recall_at_k": 0.8333333333333334,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9165366,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q010",
+      "question_type": "cross_circular",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "da1a9776c73d2d18::fixed::0",
+        "3852d340547f4655::fixed::0",
+        "d269e03b10e0742d::fixed::0",
+        "37db1e7fe35b6021::fixed::0",
+        "dcfaa778462df0b7::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "da1a9776c73d2d18",
+        "3852d340547f4655",
+        "d269e03b10e0742d",
+        "37db1e7fe35b6021",
+        "dcfaa778462df0b7"
+      ],
+      "scores": [
+        0.9119,
+        0.9104,
+        0.9069,
+        0.901,
+        0.8955
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "doc_rel": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.9119436,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q011",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "retrieved_chunk_ids": [
+        "0e06210faa377d52::fixed::0",
+        "42dc19a42770e9c5::fixed::0",
+        "d5a1b3d820cf1908::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "ba91859b85a8d96b::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "0e06210faa377d52",
+        "42dc19a42770e9c5",
+        "d5a1b3d820cf1908",
+        "4bb899ed0c7b4a3e",
+        "ba91859b85a8d96b"
+      ],
+      "scores": [
+        0.8636,
+        0.7216,
+        0.6696,
+        0.6646,
+        0.6477
+      ],
+      "chunk_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 1.0,
+      "chunk_recall_at_k": 1.0,
+      "doc_recall_at_k": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_score": 0.86358756,
+      "negative_gate_correct": null
+    },
+    {
+      "question_id": "q012",
+      "question_type": "negative",
+      "difficulty": "medium",
+      "retrieved_chunk_ids": [
+        "efc8a5dba737c964::fixed::173",
+        "dcfaa778462df0b7::fixed::0",
+        "e49848a3372c2eb1::fixed::0",
+        "d0aa9ff14711eaf8::fixed::0",
+        "a0fc37ccb9513be6::fixed::0"
+      ],
+      "retrieved_doc_ids": [
+        "efc8a5dba737c964",
+        "dcfaa778462df0b7",
+        "e49848a3372c2eb1",
+        "d0aa9ff14711eaf8",
+        "a0fc37ccb9513be6"
+      ],
+      "scores": [
+        0.0441,
+        0.0422,
+        0.0408,
+        0.04,
+        0.0392
+      ],
+      "chunk_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 0.0,
+      "chunk_recall_at_k": 0.0,
+      "doc_recall_at_k": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_k": 0.0,
+      "top_score": 0.044138066,
+      "negative_gate_correct": true
+    },
+    {
+      "question_id": "q013",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "efc8a5dba737c964::fixed::193",
+        "efc8a5dba737c964::fixed::13",
+        "efc8a5dba737c964::fixed::19",
+        "efc8a5dba737c964::fixed::102",
+        "efc8a5dba737c964::fixed::107"
+      ],
+      "retrieved_doc_ids": [
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964"
+      ],
+      "scores": [
+        0.0871,
+        0.0769,
+        0.0724,
+        0.0649,
+        0.0584
+      ],
+      "chunk_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 0.0,
+      "chunk_recall_at_k": 0.0,
+      "doc_recall_at_k": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_k": 0.0,
+      "top_score": 0.0870737,
+      "negative_gate_correct": true
+    },
+    {
+      "question_id": "q014",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "retrieved_chunk_ids": [
+        "efc8a5dba737c964::fixed::171",
+        "efc8a5dba737c964::fixed::101",
+        "efc8a5dba737c964::fixed::93",
+        "efc8a5dba737c964::fixed::79",
+        "efc8a5dba737c964::fixed::90"
+      ],
+      "retrieved_doc_ids": [
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964",
+        "efc8a5dba737c964"
+      ],
+      "scores": [
+        0.0587,
+        0.036,
+        0.0324,
+        0.0322,
+        0.0322
+      ],
+      "chunk_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "doc_rel": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "hit_at_1": 0.0,
+      "chunk_recall_at_k": 0.0,
+      "doc_recall_at_k": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_k": 0.0,
+      "top_score": 0.058674112,
+      "negative_gate_correct": true
+    }
+  ],
+  "generation": [
+    {
+      "question_id": "q001",
+      "answer": "Seven circulars are being withdrawn. They are being withdrawn because they have “ceased to be operative owing to subsequent regulatory amendments, redundancy, overlap or supersession by newer directives”【1】.",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "3c471e116ed2652e::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 888,
+      "output_tokens": 133,
+      "latency_ms": 10225.5,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RESERVE BANK OF INDIA\nRBI/2026-27/254\nA.P. (DIR Series) Circular No. 21 September 08, 2026\nTo\nAll Authorised Persons\nMadam / Sir,\nReview of Circulars issued under Foreign Exchange Management Act, 1999 (FEMA)\nIn pursuance of the Reserve Bank’s ongoing initiative to rationalise the regulatory framework under\nthe Foreign Exchange Management Act, 1999 (FEMA), a comprehensive review of circulars issued\nsince June 01, 2000, is underway.\n2. In furtherance of the aforementioned initiative, seven circulars as listed at Annex, that have\nceased to be operative owing to subsequent regulatory amendments, redundancy, overlap or\nsupersession by newer directives, are being withdrawn.\n3. Authorised Persons may bring the contents of this circular to the notice of their constituents\nconcerned.\n4. The directions contained in this circular have been issued under Section 10(4) and Section 11(1)\nof the FEMA, 1999 (42 of 1999) and are without prejudice to permissions / approvals, if any,\nrequired under any ot",
+        "der Section 10(4) and Section 11(1)\nof the FEMA, 1999 (42 of 1999) and are without prejudice to permissions / approvals, if any,\nrequired under any other law.\nYours faithfully,\n(Dr. Aditya Gaiha)\nChief General Manager-in-Charge\n2\nAnnex\nList of A.P. (DIR Series) Circulars superseded\nSr.\nNo.\nSubject\nAP (DIR) Series\nCircular No.\nDate\n1\nExternal Commercial Borrowings (ECB)\nPolicy - Issuance of Rupee denominated\nbonds overseas\n17\n29.09.2015\n2\nExternal Commercial Borrowings (ECB)\nin Indian Rupees\n25\n03.09.2014\n3\nExternal Commercial Borrowings (ECB)\nPolicy – Liberalisation of definition of\nInfrastructure Sector\n85\n06.01.2014\n4\nBorrowing and Lending in Rupees -\nInvestments by persons resident outside\nIndia\nin\nthe\ntax\nfree,\nsecured,\nredeemable, non-convertible bonds\n81\n24.12.2013\n5\nExternal Commercial Borrowings (ECB)\nPolicy – Import of Services, Technical\nknow-how and License Fees\n119\n26.06.2013\n6\nMoney Transfer Service Scheme - List of\nSub Agents\n49\n07.11.2012\n7\nExternal Commercial Borrowings"
+      ]
+    },
+    {
+      "question_id": "q002",
+      "answer": "The directions in the circular reviewing FEMA circulars were issued under **Section 10(4) and Section 11(1) of the Foreign Exchange Management Act, 1999**【1†L4-L5】【3†L3-L4】",
+      "error": null,
+      "not_found": false,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1028,
+      "output_tokens": 88,
+      "latency_ms": 9110.8,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RESERVE BANK OF INDIA\nRBI/2026-27/254\nA.P. (DIR Series) Circular No. 21 September 08, 2026\nTo\nAll Authorised Persons\nMadam / Sir,\nReview of Circulars issued under Foreign Exchange Management Act, 1999 (FEMA)\nIn pursuance of the Reserve Bank’s ongoing initiative to rationalise the regulatory framework under\nthe Foreign Exchange Management Act, 1999 (FEMA), a comprehensive review of circulars issued\nsince June 01, 2000, is underway.\n2. In furtherance of the aforementioned initiative, seven circulars as listed at Annex, that have\nceased to be operative owing to subsequent regulatory amendments, redundancy, overlap or\nsupersession by newer directives, are being withdrawn.\n3. Authorised Persons may bring the contents of this circular to the notice of their constituents\nconcerned.\n4. The directions contained in this circular have been issued under Section 10(4) and Section 11(1)\nof the FEMA, 1999 (42 of 1999) and are without prejudice to permissions / approvals, if any,\nrequired under any ot",
+        "der Section 10(4) and Section 11(1)\nof the FEMA, 1999 (42 of 1999) and are without prejudice to permissions / approvals, if any,\nrequired under any other law.\nYours faithfully,\n(Dr. Aditya Gaiha)\nChief General Manager-in-Charge\n2\nAnnex\nList of A.P. (DIR Series) Circulars superseded\nSr.\nNo.\nSubject\nAP (DIR) Series\nCircular No.\nDate\n1\nExternal Commercial Borrowings (ECB)\nPolicy - Issuance of Rupee denominated\nbonds overseas\n17\n29.09.2015\n2\nExternal Commercial Borrowings (ECB)\nin Indian Rupees\n25\n03.09.2014\n3\nExternal Commercial Borrowings (ECB)\nPolicy – Liberalisation of definition of\nInfrastructure Sector\n85\n06.01.2014\n4\nBorrowing and Lending in Rupees -\nInvestments by persons resident outside\nIndia\nin\nthe\ntax\nfree,\nsecured,\nredeemable, non-convertible bonds\n81\n24.12.2013\n5\nExternal Commercial Borrowings (ECB)\nPolicy – Import of Services, Technical\nknow-how and License Fees\n119\n26.06.2013\n6\nMoney Transfer Service Scheme - List of\nSub Agents\n49\n07.11.2012\n7\nExternal Commercial Borrowings",
+        "ral Office of\nReserve Bank.\n2. On a review, it has been decided to dispense with the above reporting\nrequirements with immediate effect.\n3. The directions contained in this circular have been issued under sections 10(4) and\n11(1) of the Foreign Exchange Management Act, 1999 (42 of 1999) and are without\nprejudice to permissions/approvals, if any, required under any other law.\nYours faithfully\n(N. Senthil Kumar)\nChief General Manager"
+      ]
+    },
+    {
+      "question_id": "q003",
+      "answer": "The five new districts created in the Union Territory of Ladakh are Sham, Nubra, Changthang, Zanskar and Drass【1†L9-L13】【2†L1-L5】",
+      "error": null,
+      "not_found": false,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 821,
+      "output_tokens": 94,
+      "latency_ms": 9765.8,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "www.rbi.org.in ͪ\nFinancial Inclusion & Development Dept, Central Office,10th Floor, Central Office Building, Shahid Bhagat Singh Marg, P.B.No.10014, Mumbai-1\n-\nor offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/233\nFIDD.CO.LBS.BC.No.09/02.08.001/2026-27 August 10, 2026\nThe Chairman / Managing Director & Chief Executive Officer\nLead Banks Concerned\nMadam/ Dear Sir,\nFormation of new districts in the Union Territory of Ladakh –\nAssignment of Lead Bank Responsibility\nThe Administration of Union Territory (UT) of Ladakh has notified formation of five new districts,\nviz., Sham, Nubra, Changthang, Zanskar and Drass in the UT of Ladakh vide Gazette Notification\nSG-LD-E-27042026-1712 dated April 27, 2026. Accordingly, it has been decided to designate the\nLead Bank of the new districts as below:\nSr.\nNo\nNewly created\ndistrict\nLead Bank Responsibility\nassigned to\nDistrict Working Code allotted\nto new district\n1.\nSham\nState Bank of India\n02Z\n(to be read as ‘N",
+        "created\ndistrict\nLead Bank Responsibility\nassigned to\nDistrict Working Code allotted\nto new district\n1.\nSham\nState Bank of India\n02Z\n(to be read as ‘Numeral Zero,\nNumeral Two and Alphabet Z’)\n2.\nNubra\nState Bank of India\n03B\n(to be read as ‘Numeral Zero,\nNumeral Three and Alphabet B’)\n3.\nChangthang\nState Bank of India\n03A\n(to be read as ‘Numeral Zero,\nNumeral Three and Alphabet A’)\n4.\nZanskar\nState Bank of India\n03C\n(to be read as ‘Numeral Zero,\nNumeral Three and Alphabet C’)\n5.\nDrass\nState Bank of India\n03D\n(to be read as ‘Numeral Zero,\nNumeral Three and Alphabet D’)\n2. There is no change in the Lead Banks of the other districts in the UT of Ladakh.\nYours faithfully,\n(Nisha Nambiar)\nChief General Manager-in-Charge"
+      ]
+    },
+    {
+      "question_id": "q004",
+      "answer": "The temporary relaxation was shortened to **August 31 2026** 【1】.",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1889,
+      "output_tokens": 70,
+      "latency_ms": 9544.0,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RESERVE BANK OF INDIA\nRBI/2026-27/243\nDOR.SOG(SPE).REC.211/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Commercial Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Commercial Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws enabli",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/245\nDOR.SOG(SPE).REC.215/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Local Area Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Local Area Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws enabli",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/244\nDOR.SOG(SPE).REC.212/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Small Finance Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Small Finance Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/246\nDOR.SOG(SPE).REC.213/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Regional Rural Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Regional Rural Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other law",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/247\nDOR.SOG(SPE).REC.216/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Urban Co-operative Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Urban Co-operative Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A read with Section 56\nof the Banking Regulati"
+      ]
+    },
+    {
+      "question_id": "q005",
+      "answer": "The US Dollar‑Rupee swap facility for fresh FCNR(B) dollar funds is permitted for a minimum tenor of three years and a maximum tenor of five years【1】.",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "0e06210faa377d52::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1751,
+      "output_tokens": 85,
+      "latency_ms": 9923.7,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RESERVE BANK OF INDIA\nRBI/2026-27/232\nFIDD.CO.PSD.BC.No.08/04.09.001/2026-27 August 07, 2026\nReserve Bank of India (Priority Sector Lending – Targets and Classification)\nSecond Amendment Directions, 2026\nPlease refer to the Governor’s Statement dated June 5, 2026, and RBI circular\nFMOD.MAOG.No.S-56/01.06.016/2026-27 dated June 08, 2026 on ‘Swap Facility for\nFCNR (B) Deposits’, wherein it has been decided to introduce a US Dollar-Rupee\nswap facility for fresh Foreign Currency Non-Resident (Bank) [FCNR (B)] dollar funds,\nmobilised for a minimum tenor of three years and maximum tenor of five years.\n2. Further, reference is also invited to the Reserve Bank of India (Cash Reserve Ratio\nand Statutory Liquidity Ratio) Second and Third Amendment Directions dated June\n08, 2026 and June 19, 2026, as applicable to various banks, wherein exemption has\nbeen provided from maintenance of Cash Reserve Ratio and Statutory Liquidity Ratio\non fresh FCNR (B) deposits of minimum tenor of three years and ma",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/238\nDOR.RET.REC.205/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Commercial Banks – Cash Reserve Ratio and Statutory\nLiquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Commercial Banks – Cash Reserve Ratio\nand Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026) wherein\nexemption from CRR and SLR maintenance have been provided to fresh FCNR(B)\ndeposits of minimum tenor of three years and maximum tenor of five years and fresh\nNon-Resident (External) Rupee (NRE) term deposits of tenor of three years or more\nmobilized (including deposits that are renewed upon maturity) by the banks between\nJune 8, 2026 to September 30, 2026 and June 19, 2026 to Sept",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/242\nDOR.RET.REC.209/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Rural Co-operative Banks – Cash Reserve Ratio and\nStatutory Liquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Rural Co-operative Banks – Cash Reserve\nRatio and Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026)\nwherein exemption from CRR and SLR maintenance have been provided to fresh\nFCNR(B) deposits of minimum tenor of three years and maximum tenor of five years\nand fresh Non-Resident (External) Rupee (NRE) term deposits of tenor of three years\nor more mobilized (including deposits that are renewed upon maturity) by the banks\nbetween June 8, 2026 to September 30, 2026 and June",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/241\nDOR.RET.REC.208/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Urban Co-operative Banks – Cash Reserve Ratio and\nStatutory Liquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Urban Co-operative Banks – Cash Reserve\nRatio and Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026)\nwherein exemption from CRR and SLR maintenance have been provided to fresh\nFCNR(B) deposits of minimum tenor of three years and maximum tenor of five years\nand fresh Non-Resident (External) Rupee (NRE) term deposits of tenor of three years\nor more mobilized (including deposits that are renewed upon maturity) by the banks\nbetween June 8, 2026 to September 30, 2026 and June",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/240\nDOR.RET.REC.207/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Regional Rural Banks – Cash Reserve Ratio and\nStatutory Liquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Regional Rural Banks – Cash Reserve\nRatio and Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026)\nwherein exemption from CRR and SLR maintenance have been provided to fresh\nFCNR(B) deposits of minimum tenor of three years and maximum tenor of five years\nand fresh Non-Resident (External) Rupee (NRE) term deposits of tenor of three years\nor more mobilized (including deposits that are renewed upon maturity) by the banks\nbetween June 8, 2026 to September 30, 2026 and June 19, 2026"
+      ]
+    },
+    {
+      "question_id": "q006",
+      "answer": "The large‑exposure framework is being revised for **Infrastructure Debt Fund‑Non‑Banking Financial Companies (IDF‑NBFCs) that fall under the Upper‑Layer regulations**【1】.",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "818be885d35f9672::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1414,
+      "output_tokens": 118,
+      "latency_ms": 9266.8,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RBI/2026-27/237\nDOR.CRE.REC.210/07-03-008/2026-27 August 25, 2026\nReserve Bank of India (Non-Banking Financial Companies – Concentration\nRisk Management) Fourth Amendment Directions, 2026\nThe Reserve Bank has issued the Reserve Bank of India (Non-Banking Financial\nCompanies – Concentration Risk Management) Directions, 2025 dated November\n28, 2025 (hereinafter referred to as ‘Directions’). On a review, it has been decided to\nrevise the large exposure framework for Infrastructure Debt Fund-Non-Banking\nFinancial Company (IDF-NBFC) in the Upper Layer.\n2. Accordingly, in exercise of the powers conferred by Chapter III B of the Reserve\nBank of India Act, 1934, and all other provisions / laws enabling the Reserve Bank of\nIndia (‘RBI’) in this regard, RBI being satisfied that it is necessary and expedient in\nthe public interest so to do, hereby, issues the Amendment Directions hereinafter\nspecified.\n3. These Amendment Directions shall be called the Reserve Bank of India (Non-\nBanking Financial",
+        "issues the Amendment Directions hereinafter\nspecified.\n3. These Amendment Directions shall be called the Reserve Bank of India (Non-\nBanking Financial Companies – Concentration Risk Management) Fourth\nAmendment Directions, 2026.\n4. These Amendment Directions shall come into force with immediate effect.\n5. These Amendment Directions shall modify the Directions as under:\n(1) After paragraph 39 in ‘Chapter IV - Guidelines Applicable to NBFC – Upper Layer’,\na new paragraph 39A shall be inserted as under:\n39A. The large exposure limits applicable to NBFC-IFC shall also be applicable\nto IDF-NBFC that are subject to Upper Layer regulations in terms of paragraph\n60A of the Reserve Bank of India (Non-Banking Financial Companies –\nUndertaking of Financial Services) Directions, 2025 read together with\n2\nparagraph 18 (4) (i) of the Reserve Bank of India (Commercial Banks –\nUndertaking of Financial Services) Directions, 2025.\n(Dr. Sudarsana Sahoo)\nChief General Manager",
+        "e template with a narrative commentary to explain any significant\nchange over the reporting period and the key drivers of such changes. A bank should describe the sequence in which\nCCFs, provisioning and credit risk mitigation measures are applied.\na\nb\nc\nd\ne\nf\nExposures before CCF and\nCRM\nExposures post-CCF and\nCRM\nRWA and RWA\ndensity\nAsset classes\nOn-balance\nsheet amount\nOff-balance\nsheet amount\nOn-balance\nsheet amount\nOff-balance\nsheet amount\nRWA\nRWA\ndensity\n1\nDomestic Sovereigns\n2\nForeign Sovereigns and\nForeign Central Banks\n3\nPublic sector entities\n4\nMultilateral development\nbanks, BIS and IMF\n5\nBanks\n6\nPrimary Dealers\n7\nCorporates and NBFCs\n8\nRegulatory retail\nportfolios\n9\nSecured by residential\nproperty\n10\nCommercial real estate\nexposure\n11\nNon-performing assets\n12\nSpecified Categories\n12a\nOf which: Direct\nequity exposure\n13\nOther assets\n14\nTotal\nInstructions:\nRows:\nRows reflect the asset classes as defined under paragraphs 21 to 71 of the Reserve Bank of India (Small Finance Ban",
+        "instructions issued by\nthe Reserve Bank in the Reserve Bank of India (Non-Banking Financial\nCompanies – Managing Risks in Outsourcing) Directions, 2025, as amended\n4\nfrom time to time. An NBFC or the recovery agencies engaged by it shall carry\nout verification of the antecedents of the recovery agents at pre-engagement\nlevel and subsequently, on an ongoing basis at a pre-defined periodicity as\nspecified in the NBFC’s policy.\nJ.2.2 Training\n100I. An NBFC shall ensure that the recovery agency engages only those agents\nwho have obtained the certificate from Indian Institute of Banking and Finance\n(IIBF) after completing the training programme for Debt Recovery Agents offered\nby IIBF or any other institute having a tie-up arrangement with IIBF. An NBFC\nshall also ensure that recovery agents already engaged by its recovery agencies,\nbut not holding the aforesaid certificate, obtain the certificate from IIBF within a\nperiod of one year from the effective date of these Directions.\nJ.2.3 Code"
+      ]
+    },
+    {
+      "question_id": "q007",
+      "answer": "The circular dated September 07 2026 carries the department reference **DOR.AML.REC.219/14.06.001/2026‑27**【1】.",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "930a6fd81c4a9a19::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1926,
+      "output_tokens": 136,
+      "latency_ms": 10254.2,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "do not respond in any manner to such offers.\"\nRBI/2026-27/253\nDOR.AML.REC.219/14.06.001/2026-27 September 07, 2026\nThe Chairpersons/ CEOs of the Commercial Banks,\nSmall Finance Banks, Payment Banks, Urban Co-operative Banks,\nRural Co-operative Banks, Regional Rural Banks, Local Area Banks,\nNon-Banking Financial Companies, Asset Reconstruction Companies,\nAll India Financial Institutions\nMadam/Dear Sir,\nImplementation of Section 51A of UAPA, 1967: Updates to UNSC’s 1267/ 1989 ISIL\n(Da'esh) & Al-Qaida Sanctions List: Amendment of 2 Entries\nPlease refer to Chapter IX on “Requirements/obligations under International Agreements\n- Communications from International Agencies” of the Reserve Bank of India - Know\nYour Customer, Directions, 2025 dated November 28, 2025 (amended as on December\n29, 2025) (“Directions”), as applicable, as per which, regulated entity shall ensure that in\nterms of section 51A of the Unlawful Activities (Prevention) (UAPA) Act, 1967 and\namendments thereto, it does not h",
+        "do not respond in any manner to such offers.\"\nRBI/2026-27/235\nDOR.AML.REC.203/14.06.001/2026-27 August 18, 2026\nThe Chairpersons/ CEOs of the Commercial Banks,\nSmall Finance Banks, Payment Banks, Urban Co-operative Banks,\nRural Co-operative Banks, Regional Rural Banks, Local Area Banks,\nNon-Banking Financial Companies, Asset Reconstruction Companies,\nAll India Financial Institutions\nMadam/Dear Sir,\nImplementation of Section 51A of UAPA, 1967: Updates to UNSC’s 1267/ 1989 ISIL\n(Da'esh) & Al-Qaida Sanctions List: Amendment of 04 Entries\nPlease refer to Chapter IX on “Requirements/obligations under International Agreements\n- Communications from International Agencies” of the Reserve Bank of India - Know\nYour Customer, Directions, 2025 dated November 28, 2025 (amended as on December\n29, 2025) (“Directions”), as applicable, as per which, regulated entity shall ensure that in\nterms of section 51A of the Unlawful Activities (Prevention) (UAPA) Act, 1967 and\namendments thereto, it does not hav",
+        "ulated entity shall ensure that in\nterms of section 51A of the Unlawful Activities (Prevention) (UAPA) Act, 1967 and\namendments thereto, it does not have any account in the name of individuals / entities\nappearing in the lists of individuals and entities, suspected of having terrorist links, which\nare approved by and periodically circulated by the United Nations Security Council\n(UNSC).\n2. In this connection, Ministry of External Affairs (MEA), Government of India has\ninformed about the UNSC press release SC/16446, dated September 04, 2026 wherein\nthe Security Council pursuant to resolutions 1267 (1999), 1989 (2011) and 2253 (2015)\nconcerning ISIL (Da’esh), Al‑Qaida and associated individuals, groups, undertakings and\nentities enacted the amendments specified with strikethrough and underline in the\nentries below on its ISIL (Da’esh) and Al-Qaida Sanctions List of individuals and entities\nsubject to the assets freeze, travel ban and arms embargo set out in paragraph 1 of\nSecurity Counci",
+        "do not respond in any manner to such offers.\"\nRBI/2026-27/234\nDOR.AML.REC.202/14.06.001/2026-27 August 18, 2026\nThe Chairpersons/ CEOs of the Commercial Banks,\nSmall Finance Banks, Payment Banks, Urban Co-operative Banks,\nRural Co-operative Banks, Regional Rural Banks, Local Area Banks,\nNon-Banking Financial Companies, Asset Reconstruction Companies,\nAll India Financial Institutions\nMadam/Dear Sir,\nImplementation of Section 51A of UAPA, 1967: Updates to UNSC’s 1267/ 1989 ISIL\n(Da'esh) & Al-Qaida Sanctions List: Amendment of 04 Entries\nPlease refer to Chapter IX on “Requirements/obligations under International Agreements\n- Communications from International Agencies” of the Reserve Bank of India - Know\nYour Customer, Directions, 2025 dated November 28, 2025 (amended as on December\n29, 2025) (“Directions”), as applicable, as per which, regulated entity shall ensure that in\nterms of section 51A of the Unlawful Activities (Prevention) (UAPA) Act, 1967 and\namendments thereto, it does not hav",
+        "ated entity shall ensure that in\nterms of section 51A of the Unlawful Activities (Prevention) (UAPA) Act, 1967 and\namendments thereto, it does not have any account in the name of individuals / entities\nappearing in the lists of individuals and entities, suspected of having terrorist links, which\nare approved by and periodically circulated by the United Nations Security Council\n(UNSC).\n2. In this connection, Ministry of External Affairs (MEA), Government of India has\ninformed about the UNSC press release SC/16435, dated August 18, 2026 wherein the\nSecurity Council pursuant to resolutions 1267 (1999), 1989 (2011) and 2253 (2015)\nconcerning ISIL (Da’esh), Al‑Qaida and associated individuals, groups, undertakings and\nentities enacted the amendments specified with strikethrough and underline in the\nentries mentioned in Annexure 1 on its ISIL (Da’esh) and Al-Qaida Sanctions List of\nindividuals and entities subject to the assets freeze, travel ban and arms embargo set\nout in paragraph 1 of Se"
+      ]
+    },
+    {
+      "question_id": "q008",
+      "answer": "The Second Amendment Directions on interest rates on deposits for Local Area Banks become effective on October 01, 2026 [1][2].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "a0fc37ccb9513be6::fixed::1",
+        "a0fc37ccb9513be6::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1649,
+      "output_tokens": 65,
+      "latency_ms": 9499.1,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "called the Reserve Bank of India (Local Area\nBanks – Interest Rate on Deposits) Second Amendment Directions, 2026.\n4. These Amendment Directions shall come into effect from October 01, 2026.\n5. These Amendment Directions shall modify the Directions as under:\n(1) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the paragraph\n6(3) shall be substituted by the following, namely:\nInterest rates payable on deposits, including bulk deposits, shall be strictly as\nper the schedule of interest rates disclosed in advance on the bank’s website.\nHowever, interest rates payable on bulk deposits shall be disclosed on the\nbank’s website at 10:00 am with a grace time of 10 minutes, latest by 10:10 am,\non each business day.\n(1)(a) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the\nparagraph 6(2) shall be substituted by the following, namely:\nThe interest rates offered on deposits, including bulk deposits, shall be uniform\nacross all branches and for all customers and t",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/218\nDOR.SOG(SPE).REC.177/13.03.00/2026-27 July 30, 2026\nReserve Bank of India (Local Area Banks – Interest Rate on Deposits) Second\nAmendment Directions, 2026\nPlease refer to the Reserve Bank of India (Local Area Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November\n28, 2025. On a review, it has been decided to issue revised instructions pertaining to\ndisclosure of interest rates on deposits.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws enabling the Reserve Bank India (RBI) in this\nregard, the RBI, being satisfied that it is necessary and expedient in public interest so\nto do, hereby issues the Amendment Directions hereinafter specified.\n3. These Amendment Directions shall be called the Reserve Bank of India (Local Area\nBanks – Interest Rate on Deposits) Second Amendment Directions, 2026.\n4. These Amendment Directions shal",
+        ". These Amendment Directions shall be called the Reserve Bank of India (Urban Co-\noperative Banks – Interest Rate on Deposits) Second Amendment Directions, 2026.\n4. These Amendment Directions shall come into effect from October 01, 2026.\n5. These Amendment Directions shall modify the Directions, as under:\n(1) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the paragraph\n6(3) shall be substituted by the following, namely:\nInterest rates payable on deposits, including bulk deposits, shall be strictly as\nper the schedule of interest rates disclosed in advance on the bank’s website.\nHowever, interest rates payable on bulk deposits shall be disclosed on the\nbank’s website at 10:00 am with a grace time of 10 minutes, latest by 10:10 am,\non each business day.\n(1)(a) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the\nparagraph 6(2) shall be substituted by the following, namely:\nThe interest rates offered on deposits, including bulk deposits, shall be uniform",
+        "shall be called the Reserve Bank of India (Regional\nRural Banks – Interest Rate on Deposits) Second Amendment Directions, 2026.\n4. These Amendment Directions shall come into effect from October 01, 2026.\n5. These Amendment Directions shall modify the Directions, as under:\n(1) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the paragraph\n6(3) shall be substituted by the following, namely:\nInterest rates payable on deposits, including bulk deposits, shall be strictly as\nper the schedule of interest rates disclosed in advance on the bank’s website.\nHowever, interest rates payable on bulk deposits shall be disclosed on the\nbank’s website at 10:00 am with a grace time of 10 minutes, latest by 10:10 am,\non each business day.\n(1)(a) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the\nparagraph 6(2) shall be substituted by the following, namely:\nThe interest rates offered on deposits, including bulk deposits, shall be uniform\nacross all branches and for all cu",
+        "ecified.\n3. These Amendment Directions shall be called the Reserve Bank of India (Small\nFinance Banks – Interest Rate on Deposits) Second Amendment Directions, 2026.\n4. These Amendment Directions shall come into effect from October 01, 2026.\n5. These Amendment Directions shall modify the Directions as under:\n(1) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the paragraph\n6(3) shall be substituted by the following, namely:\nInterest rates payable on deposits, including bulk deposits, shall be strictly as\nper the schedule of interest rates disclosed in advance on the bank’s website.\nHowever, interest rates payable on bulk deposits shall be disclosed on the\nbank’s website at 10:00 am with a grace time of 10 minutes, latest by 10:10 am,\non each business day.\n(1)(a) In Chapter II on ‘General Guidelines (Interest Rate Framework)’, the\nparagraph 6(2) shall be substituted by the following, namely:\nThe interest rates offered on deposits, including bulk deposits, shall be unifo"
+      ]
+    },
+    {
+      "question_id": "q009",
+      "answer": "The amendment directions dated 25 August 2026 were issued for the following categories of banks:\n\n- Urban Co‑operative Banks [1]  \n- Regional Rural Banks [2]  \n- Small Finance Banks [3]  \n- Rural Co‑operative Banks [4]  \n- Commercial Banks [5]",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "094d80f3f8c07f51::fixed::0",
+        "ba91859b85a8d96b::fixed::0",
+        "4bb899ed0c7b4a3e::fixed::0",
+        "c48762bdc198f6d0::fixed::0",
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1877,
+      "output_tokens": 105,
+      "latency_ms": 10143.6,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RESERVE BANK OF INDIA\nRBI/2026-27/247\nDOR.SOG(SPE).REC.216/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Urban Co-operative Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Urban Co-operative Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A read with Section 56\nof the Banking Regulati",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/246\nDOR.SOG(SPE).REC.213/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Regional Rural Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Regional Rural Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other law",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/244\nDOR.SOG(SPE).REC.212/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Small Finance Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Small Finance Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/248\nDOR.SOG(SPE).REC.214/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Rural Co-operative Banks – Interest Rate on Deposits)\nSecond Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Rural Co-operative Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A read with Section 56\nof the Banking Regulat",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/243\nDOR.SOG(SPE).REC.211/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Commercial Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Commercial Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws enabli"
+      ]
+    },
+    {
+      "question_id": "q010",
+      "answer": "The amendment directions dated 25 August 2026 were issued for the following categories of banks:\n\n- Rural Co‑operative banks [1]  \n- Urban Co‑operative banks [2]  \n- Regional Rural banks [3]  \n- Small Finance banks [4]  \n- Commercial banks [5]",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "da1a9776c73d2d18::fixed::0",
+        "3852d340547f4655::fixed::0",
+        "d269e03b10e0742d::fixed::0",
+        "37db1e7fe35b6021::fixed::0",
+        "dcfaa778462df0b7::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1733,
+      "output_tokens": 100,
+      "latency_ms": 9269.2,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/242\nDOR.RET.REC.209/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Rural Co-operative Banks – Cash Reserve Ratio and\nStatutory Liquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Rural Co-operative Banks – Cash Reserve\nRatio and Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026)\nwherein exemption from CRR and SLR maintenance have been provided to fresh\nFCNR(B) deposits of minimum tenor of three years and maximum tenor of five years\nand fresh Non-Resident (External) Rupee (NRE) term deposits of tenor of three years\nor more mobilized (including deposits that are renewed upon maturity) by the banks\nbetween June 8, 2026 to September 30, 2026 and June",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/241\nDOR.RET.REC.208/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Urban Co-operative Banks – Cash Reserve Ratio and\nStatutory Liquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Urban Co-operative Banks – Cash Reserve\nRatio and Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026)\nwherein exemption from CRR and SLR maintenance have been provided to fresh\nFCNR(B) deposits of minimum tenor of three years and maximum tenor of five years\nand fresh Non-Resident (External) Rupee (NRE) term deposits of tenor of three years\nor more mobilized (including deposits that are renewed upon maturity) by the banks\nbetween June 8, 2026 to September 30, 2026 and June",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/240\nDOR.RET.REC.207/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Regional Rural Banks – Cash Reserve Ratio and\nStatutory Liquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Regional Rural Banks – Cash Reserve\nRatio and Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026)\nwherein exemption from CRR and SLR maintenance have been provided to fresh\nFCNR(B) deposits of minimum tenor of three years and maximum tenor of five years\nand fresh Non-Resident (External) Rupee (NRE) term deposits of tenor of three years\nor more mobilized (including deposits that are renewed upon maturity) by the banks\nbetween June 8, 2026 to September 30, 2026 and June 19, 2026",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/239\nDOR.RET.REC.206/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Small Finance Banks – Cash Reserve Ratio and\nStatutory Liquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Small Finance Banks – Cash Reserve Ratio\nand Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026) wherein\nexemption from CRR and SLR maintenance have been provided to fresh FCNR(B)\ndeposits of minimum tenor of three years and maximum tenor of five years and fresh\nNon-Resident (External) Rupee (NRE) term deposits of tenor of three years or more\nmobilized (including deposits that are renewed upon maturity) by the banks between\nJune 8, 2026 to September 30, 2026 and June 19, 2026 t",
+        "RESERVE BANK OF INDIA\n_______________________________________________________________________________________________________________________________________ͪ\netc. It never keeps or offers funds to anyone. Please do not respond in any manner to such offers.\nRBI/2026-27/238\nDOR.RET.REC.205/12.01.001/2026-27\nAugust 25, 2026\nReserve Bank of India (Commercial Banks – Cash Reserve Ratio and Statutory\nLiquidity Ratio) Fourth Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Commercial Banks – Cash Reserve Ratio\nand Statutory Liquidity Ratio) Directions, 2025 (updated as on June 19, 2026) wherein\nexemption from CRR and SLR maintenance have been provided to fresh FCNR(B)\ndeposits of minimum tenor of three years and maximum tenor of five years and fresh\nNon-Resident (External) Rupee (NRE) term deposits of tenor of three years or more\nmobilized (including deposits that are renewed upon maturity) by the banks between\nJune 8, 2026 to September 30, 2026 and June 19, 2026 to Sept"
+      ]
+    },
+    {
+      "question_id": "q011",
+      "answer": "The swap facility for fresh FCNR (B) deposits is to be offered for a minimum tenor of three years and a maximum tenor of five years [1].  \n\nThe temporary withdrawal of the interest‑rate ceiling for commercial banks, originally set to expire on 30 September 2026, was later revised to expire on 31 August 2026 [2].",
+      "error": null,
+      "not_found": false,
+      "citations": [
+        "0e06210faa377d52::fixed::0",
+        "42dc19a42770e9c5::fixed::0"
+      ],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "input_tokens": 1889,
+      "output_tokens": 137,
+      "latency_ms": 10244.4,
+      "not_found_correct": true,
+      "retrieved_texts": [
+        "RESERVE BANK OF INDIA\nRBI/2026-27/232\nFIDD.CO.PSD.BC.No.08/04.09.001/2026-27 August 07, 2026\nReserve Bank of India (Priority Sector Lending – Targets and Classification)\nSecond Amendment Directions, 2026\nPlease refer to the Governor’s Statement dated June 5, 2026, and RBI circular\nFMOD.MAOG.No.S-56/01.06.016/2026-27 dated June 08, 2026 on ‘Swap Facility for\nFCNR (B) Deposits’, wherein it has been decided to introduce a US Dollar-Rupee\nswap facility for fresh Foreign Currency Non-Resident (Bank) [FCNR (B)] dollar funds,\nmobilised for a minimum tenor of three years and maximum tenor of five years.\n2. Further, reference is also invited to the Reserve Bank of India (Cash Reserve Ratio\nand Statutory Liquidity Ratio) Second and Third Amendment Directions dated June\n08, 2026 and June 19, 2026, as applicable to various banks, wherein exemption has\nbeen provided from maintenance of Cash Reserve Ratio and Statutory Liquidity Ratio\non fresh FCNR (B) deposits of minimum tenor of three years and ma",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/243\nDOR.SOG(SPE).REC.211/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Commercial Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Commercial Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws enabli",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/245\nDOR.SOG(SPE).REC.215/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Local Area Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Local Area Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws enabli",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/244\nDOR.SOG(SPE).REC.212/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Small Finance Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Small Finance Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other laws",
+        "RESERVE BANK OF INDIA\nRBI/2026-27/246\nDOR.SOG(SPE).REC.213/13.03.00/2026-27 August 25, 2026\nReserve Bank of India (Regional Rural Banks – Interest Rate on Deposits)\nThird Amendment Directions, 2026\nPlease refer to the Reserve Bank of India (Regional Rural Banks – Interest Rate on\nDeposits) Directions, 2025 (hereinafter referred to as ‘Directions’), dated November 28,\n2025 (Updated as on June 17, 2026), wherein temporary withdrawal of the interest rate\nceiling on fresh FCNR(B) deposits of 3-5 year tenors and restriction on interest rates on\nNRE deposits of 3 year and above tenors, including the deposits that are renewed upon\nmaturity, have been provided with effect from June 17, 2026, for the period until\nSeptember 30, 2026. On a review, it has been decided to amend the date ‘September\n30, 2026’ to the date ‘August 31, 2026’ for the aforementioned temporary relaxation.\n2. Accordingly, in exercise of the powers conferred by Section 35A of the Banking\nRegulation Act,1949 and all other law"
+      ]
+    },
+    {
+      "question_id": "q012",
+      "answer": "I could not find an answer to that in the indexed circulars.",
+      "error": null,
+      "not_found": true,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "none",
+      "model_id": null,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "latency_ms": 137.2,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q013",
+      "answer": "I could not find an answer to that in the indexed circulars.",
+      "error": null,
+      "not_found": true,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "none",
+      "model_id": null,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "latency_ms": 140.5,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    },
+    {
+      "question_id": "q014",
+      "answer": "I could not find an answer to that in the indexed circulars.",
+      "error": null,
+      "not_found": true,
+      "citations": [],
+      "invalid_citations": [],
+      "invalid_citation_rate": 0.0,
+      "provider": "none",
+      "model_id": null,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "latency_ms": 152.2,
+      "not_found_correct": true,
+      "retrieved_texts": []
+    }
+  ],
+  "aggregates": {
+    "retrieval": {
+      "n": 11,
+      "hit@1": 1.0,
+      "chunk_recall@5": 0.9848,
+      "doc_recall@5": 0.9848,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    "by_type": {
+      "single_hop": {
+        "n": 8,
+        "hit@1": 1.0,
+        "chunk_recall@5": 1.0,
+        "doc_recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "cross_circular": {
+        "n": 2,
+        "hit@1": 1.0,
+        "chunk_recall@5": 0.9167,
+        "doc_recall@5": 0.9167,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "multi_hop": {
+        "n": 1,
+        "hit@1": 1.0,
+        "chunk_recall@5": 1.0,
+        "doc_recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    "negative_gate_accuracy": 1.0,
+    "negative_top_scores": [
+      0.044138066,
+      0.0870737,
+      0.058674112
+    ],
+    "positive_top_score_min": 0.86358756,
+    "positive_gate_misses": [],
+    "generation": {
+      "errors": 0,
+      "answered_rate_positives": 1.0,
+      "not_found_accuracy_negatives": 1.0,
+      "invalid_citation_rate": 0.0,
+      "citation_compliance": 0.8182,
+      "mean_latency_ms": 7691.2,
+      "total_input_tokens": 16865,
+      "total_output_tokens": 1131
+    },
+    "ragas": {
+      "judge_model": "openai/gpt-oss-120b",
+      "scored": 11,
+      "skipped": [],
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.7052,
+      "context_precision": 0.8671,
+      "context_recall": 0.875
+    }
+  },
+  "duration_s": 1537.37,
+  "ragas": {
+    "judge_model": "openai/gpt-oss-120b",
+    "embedding_model": "embed-v4.0",
+    "per_question": {
+      "q001": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6395226953688584,
+        "context_precision": 0.99999999995,
+        "context_recall": 1.0
+      },
+      "q002": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7796246152979983,
+        "context_precision": 0.9999999999666667,
+        "context_recall": 1.0
+      },
+      "q003": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7615349489095379,
+        "context_precision": 0.99999999995,
+        "context_recall": 1.0
+      },
+      "q004": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.3960776634740633,
+        "context_precision": 0.99999999998,
+        "context_recall": null
+      },
+      "q005": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9332923619365415,
+        "context_precision": 0.99999999998,
+        "context_recall": 1.0
+      },
+      "q006": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.4993329602600509,
+        "context_precision": 0.99999999995,
+        "context_recall": 1.0
+      },
+      "q007": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.563393414845867,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      },
+      "q008": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9030640002168383,
+        "context_precision": 0.8041666666465626,
+        "context_recall": null
+      },
+      "q009": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7947671207792559,
+        "context_precision": 0.0,
+        "context_recall": 0.0
+      },
+      "q010": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7756828781170729,
+        "context_precision": null,
+        "context_recall": 1.0
+      },
+      "q011": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7106815359979103,
+        "context_precision": null,
+        "context_recall": null
+      }
+    },
+    "means": {
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.7052,
+      "context_precision": 0.8671,
+      "context_recall": 0.875
+    },
+    "scored": 11,
+    "skipped": []
+  }
+}

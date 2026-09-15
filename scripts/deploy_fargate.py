@@ -62,7 +62,8 @@ CONFIG_KEYS = [
     "INJECTION_BACKEND", "INJECTION_MODEL_ID", "LANGFUSE_HOST", "OTEL_SERVICE_NAME",
     "AWS_REGION",
 ]
-EXCLUDE_DIRS = {".git", "data", "tests", "docs", "results", ".pytest_cache", ".ruff_cache", "__pycache__", ".venv", "venv"}
+EXCLUDE_DIRS = {".git", "data", "tests", "docs", ".pytest_cache", ".ruff_cache", "__pycache__", ".venv", "venv"}
+KEEP_RESULTS = Path("evaluation/results/published")  # the only results that ship
 EXCLUDE_FILES = {".env", "CLAUDE.md", "AI_Engineer_Portfolio_Projects.md"}
 
 
@@ -111,6 +112,8 @@ def zip_source(root: Path) -> bytes:
         for path in sorted(root.rglob("*")):
             rel = path.relative_to(root)
             if any(part in EXCLUDE_DIRS for part in rel.parts):
+                continue
+            if rel.parts[:2] == ("evaluation", "results") and not rel.is_relative_to(KEEP_RESULTS):
                 continue
             if path.is_file() and rel.name not in EXCLUDE_FILES and not rel.name.startswith(".env."):
                 zf.write(path, rel.as_posix())

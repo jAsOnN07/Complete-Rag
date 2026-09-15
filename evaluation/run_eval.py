@@ -30,7 +30,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, Field
 
@@ -282,10 +282,12 @@ async def evaluate(
     pace: float = 0.0,
     quiet: bool = False,
     service: Any | None = None,
+    on_progress: Callable[[dict[str, Any]], None] | None = None,
     **ragas_kw: Any,
 ) -> EvalResult:
     """Run one evaluation against an explicit Settings. Pure of CLI and cache.
-    `ragas_kw` (judge, embeddings, max_workers) is forwarded to the RAGAS tier."""
+    `ragas_kw` (judge, embeddings, max_workers) is forwarded to the RAGAS tier.
+    `on_progress` receives one dict per question (the UI streams these)."""
     questions = gold.questions[:limit] if limit else gold.questions
 
     if service is None:
@@ -333,6 +335,12 @@ async def evaluate(
             f"docR@{k}={row.doc_recall_at_k:.2f} mrr={row.mrr:.2f} "
             f"top={row.top_score:.3f} {flag}"
         )
+        progress: dict[str, Any] = {
+            "index": i + 1, "total": len(questions), "question_id": q.id,
+            "question_type": q.question_type.value, "hit_at_1": row.hit_at_1,
+            "doc_recall_at_k": row.doc_recall_at_k, "mrr": row.mrr, "top_score": row.top_score,
+            "negative_gate_correct": row.negative_gate_correct,
+        }
 
         if tier in ("generation", "ragas"):
             t0 = time.perf_counter()
@@ -349,7 +357,15 @@ async def evaluate(
                         latency_ms=round((time.perf_counter() - t0) * 1000, 1),
                     )
                 )
+                progress["error"] = f"{type(exc).__name__}"
+                if on_progress:
+                    on_progress(progress)
                 continue
+            progress.update(
+                not_found=answer.not_found, not_found_correct=(answer.not_found == q.is_negative),
+                citations=len(answer.citations), provider=answer.provider, model_id=answer.model_id,
+                latency_ms=round((time.perf_counter() - t0) * 1000, 1),
+            )
             result.generation.append(
                 GenerationRow(
                     question_id=q.id,
@@ -367,6 +383,8 @@ async def evaluate(
                     retrieved_texts=[s.chunk.text for s in retrieved if s.score >= threshold],
                 )
             )
+        if on_progress:
+            on_progress(progress)
 
     if tier == "ragas":
         score_ragas(result, gold, settings, quiet=quiet, **ragas_kw)
