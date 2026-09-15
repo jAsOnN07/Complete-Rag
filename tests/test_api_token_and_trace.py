@@ -79,3 +79,22 @@ async def test_non_debug_response_has_no_trace():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         body = (await c.post("/query", json={"question": "KYC rules"})).json()
     assert body["trace"] is None and body["retrieval"] is None
+
+
+async def test_stream_debug_emits_candidates_before_tokens_and_trace_in_final():
+    app = await make_app(None, collecting=True)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        r = await c.post("/query/stream", json={"question": "KYC rules", "debug": True})
+    events = [ln[7:] for ln in r.text.splitlines() if ln.startswith("event: ")]
+    assert events[0] == "candidates" and events[-1] == "final"
+    payloads = [ln[6:] for ln in r.text.splitlines() if ln.startswith("data: ")]
+    assert '"retrieval"' in payloads[0] and '"text"' in payloads[0]
+    assert '"trace"' in payloads[-1] and '"spans"' in payloads[-1]
+
+
+async def test_stream_without_debug_has_no_candidates_event():
+    app = await make_app(None, collecting=True)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        r = await c.post("/query/stream", json={"question": "KYC rules"})
+    events = [ln[7:] for ln in r.text.splitlines() if ln.startswith("event: ")]
+    assert "candidates" not in events and events[0] == "meta"

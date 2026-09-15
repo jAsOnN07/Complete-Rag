@@ -21,6 +21,7 @@ from api.schemas import (
     QueryRequest,
     QueryResponse,
     ReadyResponse,
+    RetrievedChunkView,
     TraceView,
 )
 from observability.tracing import get_tracer, request_scope
@@ -117,8 +118,14 @@ async def query_stream(
         try:
             with request_scope() as scope:
                 async for ev in service.answer_stream(
-                    request.question, window_chars=settings.stream_window_chars, top_n=request.top_k
+                    request.question, window_chars=settings.stream_window_chars, top_n=request.top_k,
+                    include_candidates=request.debug,
                 ):
+                    if ev.event == "candidates":
+                        ev.data = {
+                            "retrieval": [RetrievedChunkView.from_scored(s).model_dump(mode="json")
+                                          for s in ev.data["candidates"]]
+                        }
                     if ev.event == "final":
                         latency_ms = round((time.perf_counter() - started) * 1000, 2)
                         ev.data["latency_ms"] = latency_ms

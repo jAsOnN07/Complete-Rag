@@ -61,6 +61,16 @@ def create_app(service: object | None = None) -> FastAPI:
 
     app.include_router(ui_router)
 
+    # The showcase UI: static files served by the API itself, mounted last so
+    # every route above wins. No build step; ships in the same image.
+    from pathlib import Path
+
+    from fastapi.staticfiles import StaticFiles
+
+    static_dir = Path(__file__).resolve().parent.parent / "ui" / "static"
+    if static_dir.is_dir():
+        app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="ui")
+
     # Tracer first (it installs the shared provider), then HTTP instrumentation
     # on that provider, so request spans are the root of every trace.
     from observability.otel import instrument_app

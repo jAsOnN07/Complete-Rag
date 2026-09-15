@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RBI Circular Q&amp;A</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📜</text></svg>">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo">📜</span>
+    <div>
+      <div class="title">RBI Circular Q&amp;A</div>
+      <div class="sub">hybrid retrieval · reranker gate · cited answers · gateway failover · traced &amp; measured</div>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="ask">Ask</button>
+    <button class="tab" data-tab="trace">Trace</button>
+    <button class="tab" data-tab="eval">Evaluate</button>
+    <button class="tab" data-tab="about">About</button>
+  </nav>
+  <div class="status-strip" id="strip">
+    <span class="pill muted" id="strip-ready">connecting…</span>
+    <span class="pill muted" id="strip-model"></span>
+    <span class="pill muted" id="strip-failovers" title="answers served by the fallback provider this session">failovers: 0</span>
+    <button class="linkish" id="token-btn" hidden>token</button>
+  </div>
+</header>
+
+<main>
+  <!-- ============================ ASK ============================ -->
+  <section class="panel" id="tab-ask">
+    <form id="ask-form" class="ask">
+      <textarea id="question" rows="2" placeholder="Ask about an RBI circular, e.g. Which five new districts were formed in Ladakh?" required minlength="3" maxlength="2000"></textarea>
+      <div class="ask-controls">
+        <label>top-k <input type="number" id="topk" min="1" max="20" value="5"></label>
+        <label><input type="checkbox" id="stream" checked> stream</label>
+        <button type="submit" id="ask-btn" class="primary">Ask</button>
+      </div>
+    </form>
+    <div class="examples" id="examples"></div>
+
+    <div class="answer-area" id="answer-area" hidden>
+      <div class="answer-head">
+        <span class="pill" id="status-pill">…</span>
+        <span class="pill" id="served-pill" hidden></span>
+        <span class="pill muted" id="latency-pill" hidden></span>
+        <span class="pill muted" id="cost-pill" hidden></span>
+        <span class="pill muted" id="grounded-pill" hidden></span>
+      </div>
+      <div class="answer" id="answer-text"></div>
+      <div class="note" id="answer-note" hidden></div>
+      <div class="citations" id="citations"></div>
+      <details class="guard" id="guard-box" hidden><summary>guard report</summary><pre id="guard-json"></pre></details>
+    </div>
+
+    <div class="chunks" id="chunks" hidden>
+      <div class="section-head">
+        <h3>Retrieved chunks</h3>
+        <span class="hint" id="chunks-hint"></span>
+      </div>
+      <div id="chunk-list"></div>
+    </div>
+  </section>
+
+  <!-- ============================ TRACE ============================ -->
+  <section class="panel" id="tab-trace" hidden>
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-head"><h3>Last request</h3><a id="langfuse-link" target="_blank" rel="noopener" hidden>open in Langfuse ↗</a></div>
+        <div id="trace-empty" class="hint">Ask a question first — every span the service emits to Langfuse is shown here, with its cost.</div>
+        <div id="trace-waterfall"></div>
+        <div id="trace-totals" class="totals"></div>
+      </div>
+      <div class="card">
+        <div class="section-head"><h3>Configuration</h3><span class="hint" id="fingerprint"></span></div>
+        <dl class="kv" id="config-list"></dl>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head">
+        <h3>Recent traffic</h3>
+        <span><span class="hint" id="traffic-age"></span> <button class="small" id="traffic-refresh">refresh</button></span>
+      </div>
+      <div id="traffic-empty" class="hint">Loading…</div>
+      <div id="traffic" hidden>
+        <div class="tiles" id="traffic-tiles"></div>
+        <div class="grid-2">
+          <div><h4>Served by</h4><div class="bars" id="traffic-providers"></div></div>
+          <div><h4>Outcome</h4><div class="bars" id="traffic-statuses"></div></div>
+        </div>
+        <div class="table-wrap"><table class="table" id="traffic-table"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ EVALUATE ============================ -->
+  <section class="panel" id="tab-eval" hidden>
+    <nav class="subtabs">
+      <button class="subtab active" data-sub="results">Results</button>
+      <button class="subtab" data-sub="gold">Gold set</button>
+      <button class="subtab" data-sub="run">Run an eval</button>
+    </nav>
+
+    <div id="sub-results">
+      <div class="card">
+        <div class="section-head"><h3>Published runs</h3><span class="hint">committed in <code>evaluation/results/published/</code></span></div>
+        <div class="table-wrap"><table class="table" id="runs-table"></table></div>
+      </div>
+      <div class="card" id="run-detail" hidden>
+        <div class="section-head"><h3 id="run-title"></h3><span class="hint" id="run-meta"></span></div>
+        <div class="tiles" id="run-tiles"></div>
+        <div class="grid-2">
+          <div><h4>Retrieval by question type</h4><div class="table-wrap"><table class="table" id="run-bytype"></table></div></div>
+          <div><h4>RAGAS</h4><div id="run-ragas" class="hint">not scored in this run</div></div>
+        </div>
+        <h4>Per question</h4>
+        <div class="table-wrap"><table class="table dense" id="run-rows"></table></div>
+      </div>
+      <div class="card">
+        <div class="section-head"><h3>Comparisons</h3><span class="hint">every default was chosen by one of these</span></div>
+        <div id="compare-tables"></div>
+      </div>
+    </div>
+
+    <div id="sub-gold" hidden>
+      <div class="grid-2 gold">
+        <div class="card">
+          <div class="section-head">
+            <h3>Gold set</h3>
+            <span>
+              <select id="gold-type"><option value="">all types</option></select>
+              <select id="gold-diff"><option value="">all difficulties</option></select>
+            </span>
+          </div>
+          <div id="gold-list" class="gold-list"></div>
+        </div>
+        <div class="card">
+          <div class="section-head"><h3>Live check</h3><span class="hint" id="gold-run-hint">pick a question — it runs through the deployed pipeline</span></div>
+          <div id="gold-detail" hidden>
+            <div class="kv-inline" id="gold-q"></div>
+            <div class="compare-cols">
+              <div><h4>Reference</h4><div class="answer small" id="gold-ref"></div></div>
+              <div><h4>System answer <span class="pill" id="gold-status"></span></h4><div class="answer small" id="gold-answer"></div></div>
+            </div>
+            <div class="verdict" id="gold-verdict"></div>
+            <h4>Retrieved chunks <span class="hint">evidence quotes highlighted</span></h4>
+            <div id="gold-chunks"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="sub-run" hidden>
+      <div class="card">
+        <div class="section-head"><h3>Run an evaluation against the live service</h3><span class="hint">the same <code>evaluation.run_eval.evaluate</code> the CLI uses</span></div>
+        <form id="eval-form" class="eval-form">
+          <label>tier
+            <select id="eval-tier"><option value="retrieval">retrieval (no LLM spend)</option><option value="generation">generation (capped, paced)</option></select>
+          </label>
+          <label>k <input type="number" id="eval-k" min="1" max="20" value="5"></label>
+          <label>limit <input type="number" id="eval-limit" min="1" max="50" placeholder="all"></label>
+          <label>pace s <input type="number" id="eval-pace" min="0" max="60" value="7" step="0.5"></label>
+          <button type="submit" class="primary" id="eval-btn">Start</button>
+        </form>
+        <div class="note" id="eval-note">Hosted rerankers allow ~10 requests/min on the trial key, so the run is paced. Generation runs are capped because the LLM keys are free-tier. Results written on the container are ephemeral — download the JSON when it finishes.</div>
+        <div id="eval-progress" hidden>
+          <div class="progress"><div class="progress-bar" id="eval-bar"></div></div>
+          <div class="hint" id="eval-status"></div>
+          <div class="table-wrap"><table class="table dense" id="eval-rows"></table></div>
+          <div id="eval-done" hidden>
+            <h4>Aggregates</h4>
+            <div class="tiles" id="eval-tiles"></div>
+            <pre class="json" id="eval-json"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ ABOUT ============================ -->
+  <section class="panel" id="tab-about" hidden>
+    <div class="card">
+      <h3>How a question travels</h3>
+      <svg id="arch" viewBox="0 0 980 300" class="arch" role="img" aria-label="architecture diagram"></svg>
+      <p class="hint">Every box is a span on one OpenTelemetry provider; the HTTP request is the root of the trace and every provider call carries its cost.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>What measurement changed</h3>
+        <ul class="findings">
+          <li><b>Fixed-size chunking beat recursive and semantic</b> — hit@1 1.00 vs 0.82 vs 0.64. Fixed windows keep a circular's header and body together by accident of overlap.</li>
+          <li><b>Contextual chunk headers hurt</b> — every chunk of a circular shares the header, chunks collapse together, document diversity drops.</li>
+          <li><b>Dense retrieval cannot see exact identifiers</b> — six near-identical sanctions circulars are interchangeable to an embedder; BM25 + RRF fixes it, the reranker seals it.</li>
+          <li><b>Cosine cannot gate in-domain-unanswerable questions</b> — the repo-rate question scores 0.7 against deposit-rate circulars; the reranker scores it 0.09 and refuses before any LLM call.</li>
+          <li><b>Qdrant's RRF uses k = 1, not 60</b> — measured, and the local fusion is kept congruent by a test.</li>
+          <li><b>Models invent citation syntaxes</b> — <code>[1]</code>, <code>【5】</code>, bold-with-no-brackets, and on the first live Fargate request <code>【1†L9-L12】</code>. Compliance is a metric, not a hope.</li>
+          <li><b>Thresholds are per score scale</b> — the same constant was silently read on the wrong scale three times.</li>
+          <li><b>The primary LLM changed three times with no code change</b> — Bedrock → Anthropic → Gemini, all through the gateway config; Groq is automatic fallback.</li>
+          <li><b>Free tiers are demo tiers</b> — Gemini allows 20 requests/day; the failover indicator above is that fact made visible.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Stack</h3>
+        <dl class="kv" id="about-stack"></dl>
+        <h3>Evaluation</h3>
+        <p>50 gold questions keyed by document id + verbatim evidence quotes (never chunk ids), machine-checked against the corpus. Retrieval tier (no LLM), generation tier (answers, not-found accuracy, citation compliance), RAGAS tier (faithfulness, answer relevancy, context precision/recall; judge is a config value and is recorded per run).</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="token-dialog">
+  <form method="dialog">
+    <h3>Access token</h3>
+    <p class="hint">This deployment asks for a shared token before it spends provider quota.</p>
+    <input id="token-input" type="password" placeholder="token" autocomplete="off">
+    <div class="row"><button class="primary" value="ok">Save</button></div>
+  </form>
+</dialog>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>

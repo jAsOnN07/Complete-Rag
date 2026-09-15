@@ -95,6 +95,7 @@ def test_markdown_comparison_table_parses_to_rows():
     assert t["title"] == "retrieval comparison - x" and t["meta"] == ["k: 5", "chunking: fixed"]
     assert t["columns"] == ["config", "hit@1", "MRR", "neg gate"]
     assert t["rows"][0] == {"config": "dense", "hit@1": 0.73, "MRR": 0.84, "neg gate": 1.0}
+    assert parse_markdown_table("| a | n |\n|---|---|\n| x | 553 |")["rows"][0]["n"] == 553  # counts stay integers
     assert t["rows"][1]["neg gate"] is None
 
 
@@ -120,13 +121,17 @@ def test_traffic_summary_counts_failovers_against_the_primary():
         {"traceId": "t1", "metadata": {"provider": "groq"}, "output": {"served_model": "openai/gpt-oss-120b"}},
         {"traceId": "t2", "metadata": {"provider": "google"}, "model": "gemini-3.5-flash"},
     ]
-    s = summarise_traffic(traces, answers, gens, primary_provider="@google")
-    assert s["n"] == 3 and s["providers"] == {"groq": 1, "google": 1}
+    answers = [dict(a, latency=lat, startTime=at) for a, lat, at in zip(answers, (8.0, 2.0, 0.3), ("2026-09-15T10:00:00Z", "2026-09-15T10:01:00Z", "2026-09-15T10:02:00Z"))]
+    guards = [{"traceId": "t4", "startTime": "2026-09-15T10:03:00Z", "latency": 0.2, "output": {"allowed": False}}]
+    traces.append({"id": "t5", "timestamp": "2026-09-15T09:00:00Z", "latency": 0.3, "totalCost": 0.0})  # eval retrieval-only
+    s = summarise_traffic(traces, answers, gens, primary_provider="@google", guards=guards)
+    assert s["n"] == 4 and s["other_traces"] == 1, "a trace with no guard and no answer is not a query"
+    assert s["providers"] == {"groq": 1, "google": 1}
     assert s["failover_rate"] == 0.5
-    assert s["statuses"] == {"answered": 2, "not_found": 1}
-    assert s["latency_p50_s"] == 2.0 and s["latency_p95_s"] == 8.0
-    assert s["recent"][0]["trace_id"] == "t3"  # newest first
-    assert s["recent"][2]["model"] == "openai/gpt-oss-120b"
+    assert s["statuses"] == {"answered": 2, "not_found": 1, "blocked_input": 1}
+    assert s["latency_p50_s"] == 2.0 and s["latency_p95_s"] == 8.0  # [0.2, 0.3, 2.0, 8.0]
+    assert s["recent"][0]["trace_id"] == "t4" and s["recent"][0]["url"] is None  # newest first; not in the trace page
+    assert s["recent"][3]["model"] == "openai/gpt-oss-120b" and s["recent"][3]["cost_usd"] == 0.0002
 
 
 async def test_traffic_degrades_without_langfuse(client):
@@ -143,6 +148,8 @@ async def test_traffic_uses_a_server_side_langfuse_client_and_caches(monkeypatch
             data = [{"id": "t1", "timestamp": "2026-09-15T10:00:00Z", "latency": 1.0, "totalCost": 0.0, "htmlPath": "/x"}]
         elif request.url.params.get("name") == "rag.answer":
             data = [{"traceId": "t1", "output": {"status": "answered"}}]
+        elif request.url.params.get("name") == "guardrails.input":
+            data = [{"traceId": "t1", "output": {"allowed": True}}]
         else:
             data = [{"traceId": "t1", "metadata": {"provider": "google"}}]
         return httpx.Response(200, json={"data": data, "meta": {}})
@@ -156,8 +163,8 @@ async def test_traffic_uses_a_server_side_langfuse_client_and_caches(monkeypatch
         first = (await c.get("/ui/api/traffic?limit=10")).json()
         second = (await c.get("/ui/api/traffic?limit=10")).json()
     assert first["available"] and first["n"] == 1 and first["failover_rate"] == 0.0
-    assert len(calls) == 3, "three listings per refresh"
-    assert second["cache_age_s"] >= 0 and len(calls) == 3, "second call served from cache"
+    assert len(calls) == 4, "four listings per refresh"
+    assert second["cache_age_s"] >= 0 and len(calls) == 4, "second call served from cache"
 
 
 async def test_eval_job_streams_progress_then_done(client, tmp_path: Path, monkeypatch):
@@ -219,3 +226,13 @@ async def test_generation_tier_is_capped_from_the_ui(client, tmp_path: Path, mon
 
 async def test_unknown_job_is_404(client):
     assert (await client.get("/ui/api/eval/jobs/nope/events")).status_code == 404
+
+
+async def test_ui_is_served_at_root_and_open_without_a_token():
+    app = await make_app("tok")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        r = await c.get("/")
+        assert r.status_code == 200 and "<title>RBI Circular Q&amp;A</title>" in r.text and "/app.js" in r.text
+        assert (await c.get("/app.js")).status_code == 200
+        assert (await c.get("/app.css")).status_code == 200
+        assert (await c.get("/docs")).status_code == 200  # API docs still win over the static mount

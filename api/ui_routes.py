@@ -94,45 +94,75 @@ def _percentile(values: list[float], p: float) -> float | None:
 
 def summarise_traffic(
     traces: list[dict[str, Any]], answers: list[dict[str, Any]], generations: list[dict[str, Any]],
-    *, primary_provider: str,
+    *, primary_provider: str, guards: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Join the three Langfuse listings by trace id into per-query rows and totals."""
-    by_trace: dict[str, dict[str, Any]] = {}
-    for t in traces:
-        by_trace[t["id"]] = {
-            "trace_id": t["id"], "at": t.get("timestamp"), "latency_s": t.get("latency"),
-            "cost_usd": t.get("totalCost"), "url": t.get("htmlPath"), "status": None,
-            "provider": None, "model": None, "citations": None,
-        }
+    """One row per *query*, joined by trace id from Langfuse's listings.
+
+    A query is a trace that produced a `rag.answer` span or was blocked by
+    the input guard; eval retrieval-only traces share the project but are not
+    queries and are counted separately so they cannot dilute latency or cost.
+    """
+    trace_by_id = {t["id"]: t for t in traces}
+    project_id = next((t.get("projectId") for t in traces if t.get("projectId")), None)
+    rows: dict[str, dict[str, Any]] = {}
+
+    def row(trace_id: str, at: str | None) -> dict[str, Any]:
+        if trace_id not in rows:
+            t = trace_by_id.get(trace_id, {})
+            rows[trace_id] = {
+                "trace_id": trace_id, "at": t.get("timestamp") or at, "latency_s": None,
+                "cost_usd": t.get("totalCost"), "status": None, "provider": None, "model": None,
+                "citations": None,
+                "url": t.get("htmlPath") or (f"/project/{project_id}/traces/{trace_id}" if project_id else None),
+            }
+        return rows[trace_id]
+
+    for g in guards or []:
+        out = g.get("output") if isinstance(g.get("output"), dict) else {}
+        if out.get("allowed") is False:
+            # Blocked questions never reach rag.answer; the guard span is the
+            # only record. Allowed ones are represented by their answer span
+            # (the listings are separate windows, so an allowed guard without
+            # an answer in view would only add an "unknown" row).
+            r = row(g["traceId"], g.get("startTime"))
+            r["status"] = "blocked_input"
+            r["latency_s"] = g.get("latency")
     for a in answers:
-        row = by_trace.get(a.get("traceId"))
         out = a.get("output") if isinstance(a.get("output"), dict) else {}
-        if row is not None:
-            row["status"] = out.get("status")
-            row["citations"] = out.get("citations")
+        r = row(a["traceId"], a.get("startTime"))
+        r["status"] = out.get("status") or r["status"]
+        r["citations"] = out.get("citations")
+        # The trace's latency covers guard + retrieval + answer; the answer
+        # span alone is ~0 for a gate refusal. Prefer the trace when in view.
+        r["latency_s"] = trace_by_id.get(a["traceId"], {}).get("latency") or a.get("latency")
     for g in generations:
-        row = by_trace.get(g.get("traceId"))
-        if row is None:
+        r = rows.get(g.get("traceId"))
+        if r is None:
             continue
         meta = g.get("metadata") or {}
         out = g.get("output") if isinstance(g.get("output"), dict) else {}
-        row["provider"] = meta.get("provider")
-        row["model"] = out.get("served_model") or g.get("model")
-    rows = sorted(by_trace.values(), key=lambda r: r["at"] or "", reverse=True)
-    latencies = [r["latency_s"] for r in rows if isinstance(r.get("latency_s"), (int, float))]
-    costs = [r["cost_usd"] for r in rows if isinstance(r.get("cost_usd"), (int, float))]
+        r["provider"] = meta.get("provider")
+        r["model"] = out.get("served_model") or g.get("model")
+        if r["cost_usd"] is None:
+            r["cost_usd"] = g.get("calculatedTotalCost")
+
+    ordered = sorted(rows.values(), key=lambda r: r["at"] or "", reverse=True)
+    latencies = [r["latency_s"] for r in ordered if isinstance(r.get("latency_s"), (int, float))]
+    costs = [r["cost_usd"] for r in ordered if isinstance(r.get("cost_usd"), (int, float))]
     providers: dict[str, int] = {}
     statuses: dict[str, int] = {}
-    for r in rows:
+    for r in ordered:
         if r["provider"]:
             providers[r["provider"]] = providers.get(r["provider"], 0) + 1
-        statuses[r["status"] or "unknown"] = statuses.get(r["status"] or "unknown", 0) + 1
+        key = r["status"] or "unknown"
+        statuses[key] = statuses.get(key, 0) + 1
     primary = primary_provider.lstrip("@")
     llm_calls = sum(providers.values())
     failovers = sum(n for p, n in providers.items() if p != primary)
     return {
         "available": True,
-        "n": len(rows),
+        "n": len(ordered),
+        "other_traces": sum(1 for t in traces if t["id"] not in rows),
         "latency_p50_s": _percentile(latencies, 0.5),
         "latency_p95_s": _percentile(latencies, 0.95),
         "cost_mean_usd": round(sum(costs) / len(costs), 6) if costs else None,
@@ -140,7 +170,7 @@ def summarise_traffic(
         "providers": providers,
         "failover_rate": round(failovers / llm_calls, 3) if llm_calls else None,
         "statuses": statuses,
-        "recent": rows[:25],
+        "recent": ordered[:25],
     }
 
 
@@ -156,16 +186,17 @@ async def traffic(request: Request, settings: SettingsDep, limit: int = 50) -> d
         return {"available": False, "reason": "Langfuse is not configured"}
     try:
         async with client:
-            t, a, g = await asyncio.gather(
+            t, a, g, gd = await asyncio.gather(
                 client.get("/api/public/traces", params={"limit": limit}),
                 client.get("/api/public/observations", params={"name": "rag.answer", "limit": limit}),
                 client.get("/api/public/observations", params={"type": "GENERATION", "limit": limit}),
+                client.get("/api/public/observations", params={"name": "guardrails.input", "limit": limit}),
             )
-            for r in (t, a, g):
+            for r in (t, a, g, gd):
                 r.raise_for_status()
             body = summarise_traffic(
                 t.json()["data"], a.json()["data"], g.json()["data"],
-                primary_provider=settings.llm_primary_provider,
+                primary_provider=settings.llm_primary_provider, guards=gd.json()["data"],
             )
     except httpx.HTTPError as exc:
         return {"available": False, "reason": f"Langfuse API: {type(exc).__name__}: {exc}"[:200]}
@@ -250,10 +281,13 @@ def parse_markdown_table(text: str) -> dict[str, Any]:
         cells = split(ln)
         row: dict[str, Any] = {}
         for col, cell in zip(columns, cells):
-            try:
-                row[col] = float(cell)
-            except ValueError:
-                row[col] = None if cell == "-" else cell
+            if re.fullmatch(r"-?\d+", cell):
+                row[col] = int(cell)
+            else:
+                try:
+                    row[col] = float(cell)
+                except ValueError:
+                    row[col] = None if cell == "-" else cell
         rows.append(row)
     return {"title": title, "meta": meta, "columns": columns, "rows": rows}
 

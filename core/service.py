@@ -214,7 +214,8 @@ class RagService:
 
 
     async def answer_stream(
-        self, question: str, *, window_chars: int = 300, top_n: int | None = None
+        self, question: str, *, window_chars: int = 300, top_n: int | None = None,
+        include_candidates: bool = False,
     ) -> AsyncIterator[StreamEvent]:
         """Streaming variant. Text is held in a window and checked before it is
         emitted, so nothing unchecked ever reaches the client; the full
@@ -232,6 +233,10 @@ class RagService:
 
         candidates = await self.retrieve(question, top_n=top_n)
         relevant = [c for c in candidates if c.score >= self._relevance_threshold]
+        if include_candidates:
+            # Debug mode for the UI: the scored candidates before the gate, so a
+            # refusal can show the score that caused it.
+            yield StreamEvent(event="candidates", data={"candidates": candidates})
         if not relevant:
             result = Answer.not_found_response(provider="none")
             result.chunks_considered = len(candidates)
