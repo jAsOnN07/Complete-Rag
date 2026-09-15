@@ -50,6 +50,7 @@ CPU, MEMORY = "512", "1024"
 SECRET_KEYS = [
     "PORTKEY_API_KEY", "PORTKEY_CONFIG_SLUG", "GROQ_API_KEY", "COHERE_API_KEY",
     "QDRANT_URL", "QDRANT_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
+    "UI_ACCESS_TOKEN",
 ]
 # Non-secret config mirrored from the local (measured) configuration.
 CONFIG_KEYS = [

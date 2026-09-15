@@ -15,13 +15,15 @@ from typing import AsyncIterator
 from fastapi import APIRouter, status
 from fastapi.responses import StreamingResponse
 
-from api.deps import ServiceDep, SettingsDep
+from api.deps import ServiceDep, SettingsDep, TokenDep
 from api.schemas import (
     HealthResponse,
     QueryRequest,
     QueryResponse,
     ReadyResponse,
+    TraceView,
 )
+from observability.tracing import get_tracer, request_scope
 
 router = APIRouter()
 
@@ -60,6 +62,7 @@ async def readyz(service: ServiceDep, settings: SettingsDep) -> ReadyResponse:
     response_model=QueryResponse,
     status_code=status.HTTP_200_OK,
     tags=["rag"],
+    dependencies=[TokenDep],
 )
 async def query(
     request: QueryRequest, service: ServiceDep, settings: SettingsDep
@@ -69,21 +72,27 @@ async def query(
     A question with no supporting context returns HTTP 200 with
     ``status="not_found_in_context"`` rather than an error: the caller asked a
     valid question, and "the corpus does not cover this" is a valid answer.
+
+    ``debug=true`` adds the retrieved chunks and a trace summary built from
+    the same spans Langfuse receives.
     """
     started = time.perf_counter()
     retrieval = None
 
-    if request.debug:
-        retrieval = await service.retrieve(request.question, top_n=request.top_k)
-        answer = await service.answer_from(request.question, retrieval)
-    else:
-        answer = await service.answer(request.question, top_n=request.top_k)
+    with request_scope() as scope:
+        if request.debug:
+            retrieval = await service.retrieve(request.question, top_n=request.top_k)
+            answer = await service.answer_from(request.question, retrieval)
+        else:
+            answer = await service.answer(request.question, top_n=request.top_k)
+    latency_ms = round((time.perf_counter() - started) * 1000, 2)
 
     return QueryResponse.from_answer(
         answer,
         fingerprint=settings.fingerprint(),
-        latency_ms=round((time.perf_counter() - started) * 1000, 2),
+        latency_ms=latency_ms,
         retrieval=retrieval,
+        trace=TraceView.from_scope(scope, tracer=get_tracer(), total_ms=latency_ms) if request.debug else None,
     )
 
 
@@ -91,7 +100,7 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
-@router.post("/query/stream", tags=["rag"])
+@router.post("/query/stream", tags=["rag"], dependencies=[TokenDep])
 async def query_stream(
     request: QueryRequest, service: ServiceDep, settings: SettingsDep
 ) -> StreamingResponse:
@@ -106,13 +115,19 @@ async def query_stream(
     async def gen() -> AsyncIterator[str]:
         started = time.perf_counter()
         try:
-            async for ev in service.answer_stream(
-                request.question, window_chars=settings.stream_window_chars, top_n=request.top_k
-            ):
-                if ev.event == "final":
-                    ev.data["latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
-                    ev.data["config_fingerprint"] = settings.fingerprint()
-                yield _sse(ev.event, ev.data)
+            with request_scope() as scope:
+                async for ev in service.answer_stream(
+                    request.question, window_chars=settings.stream_window_chars, top_n=request.top_k
+                ):
+                    if ev.event == "final":
+                        latency_ms = round((time.perf_counter() - started) * 1000, 2)
+                        ev.data["latency_ms"] = latency_ms
+                        ev.data["config_fingerprint"] = settings.fingerprint()
+                        if request.debug:
+                            ev.data["trace"] = TraceView.from_scope(
+                                scope, tracer=get_tracer(), total_ms=latency_ms
+                            ).model_dump(mode="json")
+                    yield _sse(ev.event, ev.data)
         except Exception as exc:  # noqa: BLE001 - a stream cannot change status code mid-flight
             yield _sse("error", {"detail": f"{type(exc).__name__}: {exc}"[:300]})
 

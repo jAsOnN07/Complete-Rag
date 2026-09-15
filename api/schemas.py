@@ -38,7 +38,10 @@ class RetrievedChunkView(BaseModel):
     stage: str
     page: int | None
     circular_no: str | None
+    title: str | None = None
+    doc_id: str
     preview: str
+    text: str  # full chunk text: the UI highlights evidence quotes in it
 
     @classmethod
     def from_scored(cls, scored: ScoredChunk) -> Self:
@@ -49,7 +52,47 @@ class RetrievedChunkView(BaseModel):
             stage=scored.stage,
             page=scored.chunk.page,
             circular_no=scored.chunk.meta.circular_no,
+            title=scored.chunk.meta.title,
+            doc_id=scored.chunk.doc_id,
             preview=scored.chunk.text[:200],
+            text=scored.chunk.text,
+        )
+
+
+class SpanView(BaseModel):
+    name: str
+    type: str
+    depth: int
+    started_ms: float
+    duration_ms: float
+    tokens_in: int | None = None
+    tokens_out: int | None = None
+    cost_usd: float | None = None
+    provider: str | None = None
+    model: str | None = None
+    extra: dict[str, object] = Field(default_factory=dict)
+
+
+class TraceView(BaseModel):
+    """What this request did, from the same spans Langfuse receives."""
+
+    trace_id: str | None = None
+    langfuse_url: str | None = None
+    total_ms: float
+    total_cost_usd: float
+    spans: list[SpanView]
+
+    @classmethod
+    def from_scope(cls, scope: object, *, tracer: object, total_ms: float) -> Self:
+        spans = [SpanView(**vars(s)) for s in getattr(scope, "spans", [])]
+        trace_id = getattr(scope, "trace_id", None)
+        url = tracer.trace_url(trace_id) if hasattr(tracer, "trace_url") else None
+        return cls(
+            trace_id=trace_id,
+            langfuse_url=url,
+            total_ms=total_ms,
+            total_cost_usd=round(sum(s.cost_usd or 0.0 for s in spans), 6),
+            spans=spans,
         )
 
 
@@ -73,6 +116,7 @@ class QueryResponse(BaseModel):
     config_fingerprint: str
     guard: GuardReport | None = None
     retrieval: list[RetrievedChunkView] | None = None
+    trace: TraceView | None = None
 
     @classmethod
     def from_answer(
@@ -82,6 +126,7 @@ class QueryResponse(BaseModel):
         fingerprint: str,
         latency_ms: float,
         retrieval: list[ScoredChunk] | None = None,
+        trace: TraceView | None = None,
     ) -> Self:
         return cls(
             status=answer.status or AnswerStatus.ANSWERED,
@@ -105,6 +150,7 @@ class QueryResponse(BaseModel):
                 if retrieval is not None
                 else None
             ),
+            trace=trace,
         )
 
 
@@ -133,5 +179,7 @@ __all__ = [
     "QueryResponse",
     "ReadyResponse",
     "RetrievedChunkView",
+    "SpanView",
+    "TraceView",
     "UsageView",
 ]

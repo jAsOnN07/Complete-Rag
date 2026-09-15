@@ -164,10 +164,13 @@ class Settings(BaseSettings):
     bedrock_rerank_region: str | None = None
     relevance_threshold: float | None = None
     max_question_chars: int = Field(default=1000, gt=0)
+    # Shared token for /query and the UI endpoints. Unset = open (local dev,
+    # tests). The deployed task has a public IP and free-tier LLM quotas.
+    ui_access_token: SecretStr | None = None
 
     @field_validator(
         "portkey_config_slug", "groq_reasoning_effort",
-        "ragas_judge_provider", "ragas_judge_model",
+        "ragas_judge_provider", "ragas_judge_model", "ui_access_token",
         "bedrock_rerank_model_arn", "bedrock_rerank_region",
         "bedrock_guardrail_id", mode="before",
     )
