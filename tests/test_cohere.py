@@ -129,3 +129,32 @@ def test_cohere_threshold_is_on_the_unit_scale():
     s = Settings(reranker_backend="cohere")
     assert 0.0 < s.threshold_for("cohere") < 1.0
     assert s.final_score_scale(reranker_active=True) == "cohere"
+
+
+async def test_embedder_paces_batches_against_a_token_budget(monkeypatch):
+    """Three ~30k-token batches against a 50k/min budget: the third must wait."""
+    import asyncio as _asyncio
+
+    sleeps: list[float] = []
+
+    async def fake_sleep(secs):
+        sleeps.append(secs)
+
+    monkeypatch.setattr(_asyncio, "sleep", fake_sleep)
+    fake = FakeCohere()
+    e = CohereEmbedder(client=fake, model_id="m", dim=4, tokens_per_minute=50_000, tracer=RecordingTracer())
+    texts = ["x" * 1000] * 96 * 3  # 96k chars ~ 27k tokens per batch
+    await e.embed_documents(texts)
+    assert len(fake.embed_calls) == 3
+    assert sleeps, "the budget must force at least one pause"
+    assert all(0 < s_ <= 61 for s_ in sleeps)
+
+
+async def test_no_pacing_when_budget_disabled(monkeypatch):
+    import asyncio as _asyncio
+
+    called = []
+    monkeypatch.setattr(_asyncio, "sleep", lambda s: called.append(s) or _asyncio.Future())
+    e = CohereEmbedder(client=FakeCohere(), model_id="m", dim=4, tokens_per_minute=0, tracer=RecordingTracer())
+    await e.embed_documents(["x" * 1000] * 200)
+    assert called == []

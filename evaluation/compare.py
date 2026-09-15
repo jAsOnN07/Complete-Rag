@@ -43,11 +43,12 @@ SUITES: dict[str, list[tuple[str, dict[str, Any]]]] = {
     "retrieval": [
         ("dense", {"retrieval_mode": "dense", "reranker_backend": "none"}),
         ("hybrid", {"retrieval_mode": "hybrid", "reranker_backend": "none"}),
-        ("hybrid+rerank", {"retrieval_mode": "hybrid", "reranker_backend": "cross_encoder"}),
+        # Reranker comes from the base config so the suite compares whatever is deployed.
+        ("hybrid+rerank", {"retrieval_mode": "hybrid"}),
     ],
 }
 
-COLUMNS = ["hit@1", "chunk_recall", "doc_recall", "mrr", "ndcg", "neg_gate"]
+COLUMNS = ["hit@1", "chunk_recall", "doc_recall", "mrr", "ndcg", "neg_gate", "pos_miss"]
 
 
 def _row(label: str, aggregates: dict[str, Any], k: int, extra: dict[str, Any]) -> dict[str, Any]:
@@ -60,6 +61,7 @@ def _row(label: str, aggregates: dict[str, Any], k: int, extra: dict[str, Any]) 
         "mrr": r["mrr"],
         "ndcg": r[f"ndcg@{k}"],
         "neg_gate": aggregates.get("negative_gate_accuracy"),
+        "pos_miss": len(aggregates.get("positive_gate_misses", [])),
         **extra,
     }
 
@@ -69,6 +71,7 @@ def render_table(rows: list[dict[str, Any]], k: int, extra_cols: list[str]) -> s
     header = {
         "config": "config", "hit@1": "hit@1", "chunk_recall": f"chunk R@{k}",
         "doc_recall": f"doc R@{k}", "mrr": "MRR", "ndcg": f"nDCG@{k}", "neg_gate": "neg gate",
+        "pos_miss": "pos gate miss",
     }
     lines = ["| " + " | ".join(header.get(c, c) for c in cols) + " |",
              "|" + "|".join("---" for _ in cols) + "|"]
@@ -82,7 +85,7 @@ def render_table(rows: list[dict[str, Any]], k: int, extra_cols: list[str]) -> s
 
 
 async def compare(
-    suite: str, *, base: Settings, gold: GoldSet, k: int, limit: int | None
+    suite: str, *, base: Settings, gold: GoldSet, k: int, limit: int | None, pace: float = 0.0
 ) -> tuple[list[dict[str, Any]], list[str]]:
     rows: list[dict[str, Any]] = []
     extra_cols: list[str] = ["chunks"] if suite.startswith("chunking") else []
@@ -99,7 +102,7 @@ async def compare(
                 print(f"  collection empty - run: CHUNK_STRATEGY={label} python -m ingestion.pipeline")
                 rows.append({"config": f"{label} (not indexed)"})
                 continue
-        result = await evaluate(settings, gold, k=k, limit=limit, quiet=True, service=service)
+        result = await evaluate(settings, gold, k=k, limit=limit, quiet=True, service=service, pace=pace)
         out = write_result(result)
         print(f"  fingerprint={result.config_fingerprint}  -> {out.name}")
         rows.append(_row(label, result.aggregates, k, extra))
@@ -109,7 +112,7 @@ async def compare(
 async def main_async(args: argparse.Namespace) -> int:
     base = get_settings()
     gold = load_gold()
-    rows, extra_cols = await compare(args.suite, base=base, gold=gold, k=args.k, limit=args.limit)
+    rows, extra_cols = await compare(args.suite, base=base, gold=gold, k=args.k, limit=args.limit, pace=args.pace)
     table = render_table(rows, args.k, extra_cols)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -141,6 +144,7 @@ def main() -> int:
     p.add_argument("suite", choices=sorted(SUITES))
     p.add_argument("--k", type=int, default=5)
     p.add_argument("--limit", type=int, default=None)
+    p.add_argument("--pace", type=float, default=0.0, help="seconds between questions (hosted rerank rate limits)")
     return asyncio.run(main_async(p.parse_args()))
 
 

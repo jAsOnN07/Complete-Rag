@@ -28,13 +28,19 @@ _DEFAULT_THRESHOLDS: dict[str, float] = {
     # out at 0.66, an out-of-domain negative scores 0.46. In-domain-but-
     # unanswerable negatives score 0.67-0.74 and CANNOT be separated by cosine
     # alone - that decision belongs to the reranker (M6) and the LLM sentinel.
+    # NOTE: calibrated on bge-small. Cohere embed-v4 cosine runs lower (positives
+    # min 0.47, negatives max 0.34 on gold), so dense-only mode with Cohere
+    # needs RELEVANCE_THRESHOLD=0.40. The deployed config (hybrid + rerank) does
+    # not read this scale; the eval reports positive gate misses to catch it.
     "dense": 0.55,
     # Qdrant RRF (k=1) is rank-based: an irrelevant query still scores 0.5 for
     # its top hit, so no threshold here carries relevance meaning. Set to 0 so
     # hybrid mode never gates pre-LLM; the reranker and sentinel own not-found.
     "rrf": 0.0,
     "cross_encoder": 0.0,   # ms-marco logit; >0 means "more relevant than not"
-    "cohere": 0.15,         # Cohere Rerank returns 0-1; provisional until calibrated on gold
+    # Calibrated on the gold set with embed-v4 + rerank-v3.5: positives bottom
+    # out at 0.86, negatives top out at 0.09. 0.30 is the log-midpoint.
+    "cohere": 0.30,
     "bedrock": 0.35,        # Bedrock Rerank returns 0-1
     "none": 0.55,           # no reranker => the dense score survives
 }
@@ -67,6 +73,9 @@ class Settings(BaseSettings):
     cohere_embed_model: str = "embed-v4.0"
     cohere_embed_dim: int = 1024
     cohere_rerank_model: str = "rerank-v3.5"
+    # Embed token budget per minute; 100k is the trial-key cap. Raise for a
+    # production key, or set 0 to disable pacing.
+    cohere_embed_tpm: int = Field(default=100_000, ge=0)
     fastembed_model: str = "BAAI/bge-small-en-v1.5"
     fastembed_dim: int = 384
 

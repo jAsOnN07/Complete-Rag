@@ -137,7 +137,7 @@ def score_retrieval(
     )
 
 
-def aggregate(result: EvalResult, gold: GoldSet) -> dict[str, Any]:
+def aggregate(result: EvalResult, gold: GoldSet, threshold: float = 0.0) -> dict[str, Any]:
     by_id = {q.id: q for q in gold.questions}
     pos = [r for r in result.retrieval if not by_id[r.question_id].is_negative]
     neg = [r for r in result.retrieval if by_id[r.question_id].is_negative]
@@ -166,6 +166,11 @@ def aggregate(result: EvalResult, gold: GoldSet) -> dict[str, Any]:
         out["negative_top_scores"] = [r.top_score for r in neg]
     if pos:
         out["positive_top_score_min"] = min(r.top_score or 0.0 for r in pos)
+        # A positive whose top score sits under the threshold would be refused
+        # before the LLM ever ran - a silent false negative the negative-gate
+        # metric cannot see.
+        misses = [r.question_id for r in pos if (r.top_score or 0.0) < threshold]
+        out["positive_gate_misses"] = misses
 
     if result.generation:
         gen = [g for g in result.generation if g.error is None]
@@ -250,7 +255,11 @@ async def evaluate(
         f"threshold({scale})={threshold}")
     say(f"{len(questions)} questions ({result.unverified_questions} unverified)\n")
 
-    for q in questions:
+    for i, q in enumerate(questions):
+        # Pacing applies to every question: hosted rerankers have per-minute
+        # limits too (Cohere trial: 10 req/min), not only the LLM.
+        if pace and i:
+            await asyncio.sleep(pace)
         retrieved = await service.retrieve(q.question, top_n=k)
         row = score_retrieval(q, retrieved, k, threshold)
         result.retrieval.append(row)
@@ -264,8 +273,6 @@ async def evaluate(
         )
 
         if tier in ("generation", "ragas"):
-            if pace and result.generation:
-                await asyncio.sleep(pace)
             t0 = time.perf_counter()
             try:
                 answer = await service.answer_from(q.question, retrieved)
@@ -302,7 +309,7 @@ async def evaluate(
         raise SystemExit("ragas tier lands with the LLM gateway at M7")
 
     result.duration_s = round(time.perf_counter() - started, 2)
-    result.aggregates = aggregate(result, gold)
+    result.aggregates = aggregate(result, gold, threshold)
     return result
 
 

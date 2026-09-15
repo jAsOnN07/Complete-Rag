@@ -203,6 +203,8 @@ class CohereEmbedder:
     """
 
     BATCH = 96
+    # Rough tokens-per-char for regulatory English; conservative on purpose.
+    CHARS_PER_TOKEN = 3.5
 
     def __init__(
         self,
@@ -210,12 +212,32 @@ class CohereEmbedder:
         client: Any,
         model_id: str,
         dim: int,
+        tokens_per_minute: int | None = None,
         tracer: Tracer | None = None,
     ) -> None:
         self._client = client
         self._model_id = model_id
         self._dim = dim
+        # Trial keys are capped at 100k tokens/min (undocumented on the rate-
+        # limits page; surfaced by a 429 mid-ingest). Batches are paced against
+        # this budget rather than retried after the fact.
+        self._tpm = tokens_per_minute
+        self._window: list[tuple[float, int]] = []
         self._tracer = tracer or get_tracer()
+
+    async def _pace(self, tokens: int) -> None:
+        if not self._tpm:
+            return
+        import time
+
+        now = time.monotonic()
+        self._window = [(t, n) for t, n in self._window if now - t < 60]
+        used = sum(n for _, n in self._window)
+        if used + tokens > self._tpm and self._window:
+            wait = 60 - (now - self._window[0][0]) + 0.5
+            await asyncio.sleep(max(wait, 0))
+            self._window = []
+        self._window.append((time.monotonic(), tokens))
 
     @property
     def model_id(self) -> str:
@@ -229,6 +251,7 @@ class CohereEmbedder:
         out: list[list[float]] = []
         for start in range(0, len(texts), self.BATCH):
             batch = list(texts[start : start + self.BATCH])
+            await self._pace(int(sum(len(t) for t in batch) / self.CHARS_PER_TOKEN))
             try:
                 response = await self._client.embed(
                     model=self._model_id,
@@ -287,6 +310,7 @@ def build_embedder(settings: Any = None) -> BedrockTitanEmbedder | FastEmbedEmbe
             client=build_cohere_client(settings),
             model_id=settings.cohere_embed_model,
             dim=settings.cohere_embed_dim,
+            tokens_per_minute=settings.cohere_embed_tpm,
         )
     if settings.embedding_backend == "fastembed":
         return FastEmbedEmbedder(

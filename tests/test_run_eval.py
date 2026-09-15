@@ -95,3 +95,17 @@ def test_ndcg_never_exceeds_one_when_a_doc_yields_several_relevant_chunks():
     r = score_retrieval(q, rows, k=4, threshold=0.55)
     assert r.ndcg_at_k <= 1.0
     assert r.ndcg_at_k == 1.0
+
+
+def test_positive_gate_misses_are_reported():
+    """A positive under the threshold is a silent refusal; the eval must surface it."""
+    gold = GoldSet(questions=[positive("p1", evidence=["seven circulars"]), positive("p2", evidence=["seven circulars"])])
+    result = EvalResult(
+        run_id="r", started_at="t", tier="retrieval", k=1, config_fingerprint="f",
+        config={}, gold_path="g", gold_version=1, questions_evaluated=2, unverified_questions=0,
+    )
+    result.retrieval = [
+        score_retrieval(gold.questions[0], [scored("a", "seven circulars", 0.9, 0)], 1, 0.55),
+        score_retrieval(gold.questions[1], [scored("a", "seven circulars", 0.4, 0)], 1, 0.55),
+    ]
+    assert aggregate(result, gold, threshold=0.55)["positive_gate_misses"] == ["p2"]
