@@ -167,3 +167,43 @@ def validate_evidence(gold: GoldSet, doc_texts: dict[str, str]) -> list[Evidence
                     )
                 )
     return problems
+
+
+def corpus_texts(
+    manifest: Path = Path("data/manifest.json"), raw_dir: Path = Path("data/raw")
+) -> dict[str, str]:
+    """Cleaned text per doc_id, through the same loader the index uses, so an
+    evidence quote that validates here is a quote a chunk can actually contain."""
+    from ingestion.loader import PdfLoader
+
+    loader = PdfLoader()
+    texts: dict[str, str] = {}
+    for row in json.loads(manifest.read_text(encoding="utf-8")):
+        path = raw_dir / row["filename"]
+        if path.exists():
+            doc = loader.load_sync(path, row)
+            texts[row["doc_id"]] = "\n".join(p.text for p in doc.pages)
+    return texts
+
+
+def check_gold(path: Path = GOLD_PATH) -> list[EvidenceProblem]:
+    return validate_evidence(load_gold(path), corpus_texts())
+
+
+def main() -> int:
+    """python -m evaluation.gold  -> exits non-zero if any quote has drifted."""
+    import sys
+
+    gold = load_gold()
+    problems = validate_evidence(gold, corpus_texts())
+    unverified = [q.id for q in gold.questions if q.verified_by is None]
+    print(f"{len(gold.questions)} questions, {len(unverified)} unverified"
+          + (f": {', '.join(unverified)}" if unverified else ""))
+    for p in problems:
+        print(f"  {p.question_id}: {p.reason} {p.quote!r}", file=sys.stderr)
+    print("evidence: " + ("all quotes found in the corpus" if not problems else f"{len(problems)} problem(s)"))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

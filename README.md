@@ -29,10 +29,21 @@ gold questions, k = 5:
 | Citation compliance | 1.00 |
 | Input-guard false positives on gold | 0 |
 | Mean latency | 7.2 s (Gemini thinking dominates) |
-| Cost per 14-question run | $0 on free tiers; ≈ $0.07 at list price |
+| Cost per 14-question run | $0 on free tiers; ≈ $0.07 at list price (RAGAS adds ≈ 44 judge calls) |
+
+| RAGAS — answers *and* judge gpt-oss-120b (Gemini's daily quota was gone, see *Provider notes*; self-judging is a known bias and the judge is a config value) | 11 positives |
+|---|---|
+| Faithfulness | 1.00 (11/11) |
+| Answer relevancy | 0.71 (see *Findings* — embedding-space dependent) |
+| Context precision (with reference) | 0.87 |
+| Context recall | 0.88 |
 
 † RRF scores are rank-based, so a threshold on them carries no relevance
 meaning — the reranker restores the gate. See *Findings*.
+
+RAGAS means exclude 5 of 44 cells the judge could not score inside the
+free-tier retry budget (NaN, listed per question in the result file). The
+two sub-1 context scores are a single question, q009, discussed below.
 
 One answer in that run was served by **Groq**: Gemini returned an error
 mid-eval, Portkey failed over, and the answer came back correct with two
@@ -117,6 +128,24 @@ fullwidth brackets) for citations; one correct answer arrived in bold markdown
 with no brackets at all. The parser accepts both bracket forms and *citation
 compliance* is a tracked metric rather than a silent failure.
 
+**RAGAS metrics need reading, not just reporting.** Three things the numbers
+above do not say on their own. *Answer relevancy* embeds a question the judge
+generates from the answer and compares it with the real one; the judge turned
+"The five new districts are Zanskar, …" into "What are the five new
+districts?", which Cohere embed-v4 scores 0.52 against the original (a true
+paraphrase scores 0.96, an unrelated question 0.10). The metric is
+embedding-space dependent and its absolute value is not comparable across
+embedders; it is tracked for regressions, not quoted as a grade. *Context
+recall and precision* are claim-level: q009's reference is one sentence
+naming six circulars, five of which were retrieved and all five cited — the
+system's own doc-recall says 0.83, RAGAS says 0.00 because no single context
+supports the whole sentence. When two metrics disagree that sharply, the
+disagreement is the finding. And the *judge is a config value* with its own
+rate limits: answer relevancy's `strictness` is sent as OpenAI `n`, and the
+Groq target rejects `n > 1`; a thinking model at default effort spent more
+than two minutes on one faithfulness prompt. The judge runs at low reasoning
+effort, one question per answer, and is recorded in every result.
+
 **Guardrails AI phones home by default.** A `Guard` registers an OpenTelemetry
 exporter to the vendor's endpoint — also a second `TracerProvider`, which would
 have split traces from Langfuse. Forced off on every Guard and verified. Two
@@ -147,12 +176,15 @@ magic-byte check — the document host serves an HTML interstitial to
 non-browser user agents, which would otherwise have silently indexed 45
 error pages.
 
-The gold set (`evaluation/gold_set.json`, 14 questions, every one verified by
-the owner) is keyed by **document id plus verbatim evidence quotes**, never
-by chunk id, so comparing chunking strategies cannot invalidate it. Every
-quote is machine-checked against the corpus at load time. Question types:
-single-hop, cross-circular (six near-duplicate circulars), multi-hop, and
-negatives that must return "not found".
+The gold set (`evaluation/gold_set.json`, 50 questions: 14 verified by the
+owner, 36 drafted from the corpus text and awaiting verification) is keyed by
+**document id plus verbatim evidence quotes**, never by chunk id, so comparing
+chunking strategies cannot invalidate it. `python -m evaluation.gold`
+machine-checks every quote against the corpus and the eval refuses to run on
+a drifted set. Question types: single-hop (including exact identifiers among
+nine near-identical sanctions circulars), cross-circular (families of five to
+eight near-duplicate amendments), multi-hop across two or three circulars,
+and negatives - out-of-domain and, harder, in-domain-unanswerable.
 
 ## Running it
 
@@ -177,6 +209,8 @@ are comparable at a glance:
 ```bash
 python -m evaluation.run_eval                        # retrieval tier, no LLM spend
 python -m evaluation.run_eval --tier generation      # + real answers
+python -m evaluation.run_eval --tier ragas           # + LLM-judged faithfulness etc.
+python -m evaluation.run_eval --from-results evaluation/results/<run>.json  # judge only
 python -m evaluation.compare retrieval               # dense / hybrid / rerank table
 python -m evaluation.compare chunking                # fixed / recursive / semantic
 ```
@@ -212,6 +246,16 @@ python -m scripts.deploy_fargate scale 0    # stop paying
 | Input guard | Guardrails AI + Groq prompt-guard classifier | native (same checks) |
 | Output guard | disabled pending Bedrock entitlement | Bedrock ApplyGuardrail (built, shape-verified) |
 
+**The free primary is a demo tier, and the numbers say so.** Google's AI
+Studio free tier allows **20 requests per day** per Gemini 3.x model (the
+error names the metric: `generate_content_free_tier_requests, limit: 20`).
+The RAGAS run below exhausted it in the first minute; every one of the
+eleven answers in that run was served by the Groq fallback, correctly cited,
+with no operator action — which is the failover story working, and also a
+statement that the production LLM budget has to be a paid key. Which model
+served each answer is recorded per row in every result file, so no run can
+quietly attribute Groq's answers to Gemini.
+
 Bedrock was the original primary for everything. The account cannot invoke
 `bedrock-runtime` (control plane works; every data-plane call returns
 `ValidationException: Operation not allowed`), so the Bedrock backends are
@@ -221,8 +265,16 @@ evidence. That is stated rather than hidden.
 ## What I would do differently
 
 - **Grow the gold set before trusting the ceilings.** 14 questions means each
-  one moves hit@1 by 0.09. The 1.00s are real but fragile; 50 questions is the
-  target and the harness is ready for it.
+  one moves hit@1 by 0.09. The set is now 50; on the 36 not-yet-verified
+  additions the same stack scores hit@1 0.86, MRR 0.89, nDCG@5 0.88 and the
+  negative gate drops to 0.75 — two new in-domain-unanswerable questions
+  (the CRR *rate*, the *amount* of the counterfeit-note penalty) pass the
+  reranker at 0.42 and 0.66 and reach the model's sentinel. Exact-identifier
+  questions among nine near-identical sanctions circulars and two-document
+  multi-hop questions are where the misses are. The headline table stays on
+  the verified 14 until the owner has checked the rest; the harness refuses
+  to run on a quote that does not appear in the corpus, so what is left to
+  verify is the *questions*, not the evidence.
 - **Measure per-embedder thresholds instead of per-stage.** The dense threshold
   calibrated on bge would silently refuse a Cohere positive. It is caught and
   documented, not yet parameterised by embedder.

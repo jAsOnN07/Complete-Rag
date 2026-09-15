@@ -2,6 +2,8 @@
 
     python -m evaluation.run_eval                    # retrieval tier: free, no LLM
     python -m evaluation.run_eval --tier generation  # + answers, citations, not-found
+    python -m evaluation.run_eval --tier ragas       # + LLM-judged quality
+    python -m evaluation.run_eval --tier ragas --from-results evaluation/results/<run>.json
     python -m evaluation.run_eval --limit 5
 
 Every run writes evaluation/results/<timestamp>__<fingerprint>.json holding
@@ -13,8 +15,10 @@ Tiers:
                 negative-gate accuracy. Zero LLM spend; runs on every change.
   generation  - retrieval tier + a real answer per question: not-found accuracy
                 on negatives, answered-rate on positives, invalid citation rate.
-  ragas       - faithfulness / answer relevancy / context precision / recall.
-                Needs a judge model; wired at M7 with the gateway.
+  ragas       - generation tier + faithfulness / answer relevancy / context
+                precision / context recall, judged by the gateway's primary
+                model. --from-results re-scores a saved generation run so
+                judge spend is not doubled by regenerating.
 """
 
 from __future__ import annotations
@@ -71,6 +75,9 @@ class GenerationRow(BaseModel):
     output_tokens: int
     latency_ms: float
     not_found_correct: bool | None = None
+    # The contexts the prompt actually contained (post-threshold), kept so a
+    # saved run can be RAGAS-scored later without regenerating.
+    retrieved_texts: list[str] = Field(default_factory=list)
 
 
 class EvalResult(BaseModel):
@@ -88,6 +95,7 @@ class EvalResult(BaseModel):
     generation: list[GenerationRow] = Field(default_factory=list)
     aggregates: dict[str, Any] = Field(default_factory=dict)
     duration_s: float = 0.0
+    ragas: dict[str, Any] | None = None
 
 
 def score_retrieval(
@@ -196,7 +204,59 @@ def aggregate(result: EvalResult, gold: GoldSet, threshold: float = 0.0) -> dict
             "total_input_tokens": sum(g.input_tokens for g in gen),
             "total_output_tokens": sum(g.output_tokens for g in gen),
         }
+    if result.ragas:
+        out["ragas"] = {
+            "judge_model": result.ragas["judge_model"],
+            "scored": result.ragas["scored"],
+            "skipped": result.ragas["skipped"],
+            **result.ragas["means"],
+        }
     return out
+
+
+def ragas_samples(result: EvalResult, gold: GoldSet) -> tuple[list[Any], list[str]]:
+    """Positives that produced an answer. Negatives and refusals are already
+    measured exactly (not-found accuracy); RAGAS would only add noise there."""
+    from evaluation.ragas_tier import RagasSample
+
+    by_id = {q.id: q for q in gold.questions}
+    samples: list[RagasSample] = []
+    skipped: list[str] = []
+    for g in result.generation:
+        q = by_id.get(g.question_id)
+        if q is None or q.is_negative:
+            continue
+        if g.error or g.not_found or not g.retrieved_texts:
+            skipped.append(g.question_id)
+            continue
+        samples.append(
+            RagasSample(
+                question_id=g.question_id, user_input=q.question, response=g.answer,
+                retrieved_contexts=g.retrieved_texts, reference=q.reference,
+            )
+        )
+    return samples, skipped
+
+
+def score_ragas(
+    result: EvalResult, gold: GoldSet, settings: Settings, *, quiet: bool = False, **kw: Any
+) -> None:
+    """Attach RAGAS scores to a result that already holds generation rows."""
+    from evaluation.ragas_tier import judge_model, score_samples
+
+    samples, skipped = ragas_samples(result, gold)
+    if not quiet:
+        print(f"\nragas: scoring {len(samples)} answered positives "
+              f"(skipped {len(skipped)}) with judge {judge_model(settings)}")
+    scores = score_samples(samples, settings=settings, **kw)
+    scores.skipped = skipped
+    result.ragas = scores.model_dump()
+    if not quiet:
+        for qid, per in scores.per_question.items():
+            cells = "  ".join(
+                f"{k[:9]}={v:.2f}" if v is not None else f"{k[:9]}=nan" for k, v in per.items()
+            )
+            print(f"  {qid} {cells}")
 
 
 def safe_config(settings: Settings) -> dict[str, Any]:
@@ -222,8 +282,10 @@ async def evaluate(
     pace: float = 0.0,
     quiet: bool = False,
     service: Any | None = None,
+    **ragas_kw: Any,
 ) -> EvalResult:
-    """Run one evaluation against an explicit Settings. Pure of CLI and cache."""
+    """Run one evaluation against an explicit Settings. Pure of CLI and cache.
+    `ragas_kw` (judge, embeddings, max_workers) is forwarded to the RAGAS tier."""
     questions = gold.questions[:limit] if limit else gold.questions
 
     if service is None:
@@ -302,14 +364,33 @@ async def evaluate(
                     output_tokens=answer.output_tokens,
                     latency_ms=round((time.perf_counter() - t0) * 1000, 1),
                     not_found_correct=(answer.not_found == q.is_negative),
+                    retrieved_texts=[s.chunk.text for s in retrieved if s.score >= threshold],
                 )
             )
 
     if tier == "ragas":
-        raise SystemExit("ragas tier lands with the LLM gateway at M7")
+        score_ragas(result, gold, settings, quiet=quiet, **ragas_kw)
 
     result.duration_s = round(time.perf_counter() - started, 2)
     result.aggregates = aggregate(result, gold, threshold)
+    return result
+
+
+def rescore(path: Path, gold: GoldSet, settings: Settings, **ragas_kw: Any) -> EvalResult:
+    """RAGAS-score a saved generation run. Retrieval and answers are reused
+    verbatim; only the judge runs. The result keeps the original run_id so the
+    file is updated in place and stays comparable with its own history."""
+    result = EvalResult.model_validate_json(path.read_text(encoding="utf-8"))
+    if not result.generation:
+        raise SystemExit(f"{path} has no generation rows; run --tier generation first")
+    if not any(g.retrieved_texts for g in result.generation):
+        raise SystemExit(f"{path} predates retrieved_texts; regenerate with --tier ragas")
+    t0 = time.perf_counter()
+    score_ragas(result, gold, settings, **ragas_kw)
+    result.tier = "ragas"
+    result.duration_s = round(result.duration_s + time.perf_counter() - t0, 2)
+    scale = settings.final_score_scale(reranker_active=settings.reranker_backend != "none")
+    result.aggregates = aggregate(result, gold, settings.threshold_for(scale))
     return result
 
 
@@ -323,9 +404,23 @@ def write_result(result: EvalResult) -> Path:
 async def run(args: argparse.Namespace) -> int:
     settings = get_settings()
     gold = load_gold(Path(args.gold))
-    result = await evaluate(
-        settings, gold, tier=args.tier, k=args.k, limit=args.limit, pace=args.pace
-    )
+    if Path("data/manifest.json").exists():
+        # A quote that has drifted from the corpus makes recall silently wrong;
+        # refuse to run rather than report a number nobody should trust.
+        from evaluation.gold import corpus_texts, validate_evidence
+
+        problems = validate_evidence(gold, corpus_texts())
+        if problems:
+            for p in problems:
+                print(f"gold {p.question_id}: {p.reason} {p.quote!r}", file=sys.stderr)
+            return 2
+    if args.from_results:
+        result = rescore(Path(args.from_results), gold, settings, max_workers=args.judge_workers)
+    else:
+        result = await evaluate(
+            settings, gold, tier=args.tier, k=args.k, limit=args.limit, pace=args.pace,
+            max_workers=args.judge_workers,
+        )
     out = write_result(result)
     print("\n== aggregates ==")
     print(json.dumps(result.aggregates, indent=2))
@@ -348,11 +443,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="seconds between generation calls (default 12 for generation tier: "
              "Groq free tier is 8k tokens/min)",
     )
+    p.add_argument(
+        "--from-results", default=None, metavar="JSON",
+        help="RAGAS-score a saved generation run instead of regenerating (implies --tier ragas)",
+    )
+    p.add_argument(
+        "--judge-workers", type=int, default=2,
+        help="RAGAS concurrency; kept low because the judge sits behind free-tier rate limits",
+    )
     return p
 
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.from_results:
+        args.tier = "ragas"
     if args.pace is None:
         args.pace = 12.0 if args.tier in ("generation", "ragas") else 0.0
     return asyncio.run(run(args))

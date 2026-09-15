@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "description": "Seed set over 45 RBI circulars (Jul-Sep 2026). Drafted from corpus text; every entry awaits human verification.",
+  "version": 2,
+  "description": "50 questions over 45 RBI circulars (Jul-Sep 2026). q001-q014 verified by the owner; q015-q050 drafted from corpus text and await verification (verified_by null).",
   "questions": [
     {
       "id": "q001",
@@ -223,6 +223,615 @@
       "evidence": [],
       "generated_by": "claude",
       "verified_by": "verified by owner",
+      "notes": null
+    },
+    {
+      "id": "q015",
+      "question": "Which two reporting requirements for Rupee accounts of non-resident banks were dispensed with by A.P. (DIR Series) Circular No. 20 of September 2026?",
+      "reference": "The annual list of offices/branches maintaining Rupee accounts of non-resident banks (due before 15 January) and the reporting of temporary overdrawals by overseas branches/correspondents not adjusted within five days; both were dispensed with, with immediate effect.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "bb09402e295cc81d"
+      ],
+      "evidence": [
+        "dispense with the above reporting requirements with immediate effect",
+        "temporary overdrawals by overseas branches/ correspondents"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q016",
+      "question": "By what dates must the half-yearly return on relief measures in areas affected by natural calamities be submitted through the CIMS portal?",
+      "reference": "Within 30 days of each half-year end: by October 30 for the half-year ending September 30, and by April 30 for the half-year ending March 31.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "3711b46aab5e491b"
+      ],
+      "evidence": [
+        "by October 30 for the half-year ending September 30"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q017",
+      "question": "What happened to the existing monthly return on relief measures in natural-calamity areas, and from what date?",
+      "reference": "The monthly return (applicable to scheduled commercial banks including SFBs, excluding RRBs) stands discontinued with effect from July 1, 2026.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "3711b46aab5e491b"
+      ],
+      "evidence": [
+        "stands discontinued with effect from July 1, 2026"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q018",
+      "question": "Why were the Urban Co-operative Banks investment portfolio directions amended in September 2026, and whose equity shares may UCBs now hold to acquire membership?",
+      "reference": "Because the Indian Digital Payment Intelligence Corporation (IDPIC) was established as the nation's central digital payment fraud intelligence platform; UCBs may hold equity shares of IDPIC (alongside the Umbrella Organization of the UCB sector) to acquire its membership.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "27acddaae101f45d"
+      ],
+      "evidence": [
+        "Indian Digital Payment Intelligence Corporation (IDPIC)"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q019",
+      "question": "How many circulars were repealed under the Department of Supervision's consolidation of supervisory instructions, and how many Consolidated Directions were released?",
+      "reference": "628 circulars listed in the Annex were repealed with immediate effect; 64 Consolidated Directions were released.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "6ca3565b0b654cf0"
+      ],
+      "evidence": [
+        "628 circulars listed in the Annex",
+        "64 Consolidated Directions"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q020",
+      "question": "By what date must all cash-handling bank staff be trained on detecting fake Indian currency notes, and what earlier deadline applies to staff in border-area branches?",
+      "reference": "All cash-handling staff by October 31, 2026; staff in branches located in border areas on priority, by September 15, 2026.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "3e726b8f4e967bc6"
+      ],
+      "evidence": [
+        "imparted training positively by October 31, 2026",
+        "latest by September 15, 2026"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q021",
+      "question": "What equipment must bank branches in districts with international borders be equipped with under the FICN circular of July 2026?",
+      "reference": "Note Authentication/Sorting Machines.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "3e726b8f4e967bc6"
+      ],
+      "evidence": [
+        "equipped with Note Authentication/ Sorting Machines"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q022",
+      "question": "From what date do the Housing Finance Companies Third Amendment Directions, 2026 come into effect, and under which statutory provision were they issued?",
+      "reference": "They come into effect from January 1, 2027 and were issued under Section 30A of the National Housing Bank Act, 1987.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "c25394f377320807"
+      ],
+      "evidence": [
+        "Section 30A of the National Housing Bank Act",
+        "come into effect from January 1, 2027"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q023",
+      "question": "What does the substituted paragraph 6.3 of the Payments Banks interest rate on deposits directions require?",
+      "reference": "Interest rates payable on deposits shall be strictly as per the schedule of interest rates disclosed in advance on the bank's website.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "d0aa9ff14711eaf8"
+      ],
+      "evidence": [
+        "disclosed in advance on the bank's website"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": "Near-duplicate wording exists in the other 30 Jul 2026 deposit-rate amendments; the Payments Banks one is the only expected doc."
+    },
+    {
+      "id": "q024",
+      "question": "Which categories of banks must disclose interest rates on bulk deposits on their website by 10:10 am each business day under the July 30, 2026 amendment directions?",
+      "reference": "Commercial Banks, Small Finance Banks, Regional Rural Banks, Local Area Banks and Urban Co-operative Banks - the five Interest Rate on Deposits (Second) Amendment Directions of July 30, 2026 (Payments Banks are not covered).",
+      "question_type": "cross_circular",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "e49848a3372c2eb1",
+        "b0da0b220cdd7250",
+        "82c9ad9407cba71a",
+        "a0fc37ccb9513be6",
+        "720c7368235a4ae8"
+      ],
+      "evidence": [
+        "latest by 10:10 am"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q025",
+      "question": "Which disclosure paragraphs were deleted from the Small Finance Banks Financial Statements - Presentation and Disclosures Directions by the Fourth Amendment, and when does it take force?",
+      "reference": "Paragraphs 10(2)(ii) and 10(2)(iii) on LCR and NSFR disclosures and paragraph 10(13) on remuneration disclosures are deleted, with effect from April 1, 2027.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "5aa91cd3642a8772"
+      ],
+      "evidence": [
+        "Paragraph 10(13) on disclosures on remuneration shall stand deleted"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q026",
+      "question": "Which valuation model must Small Finance Banks use to fair value share-linked instruments on the date of grant?",
+      "reference": "The Black-Scholes model.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "bc7c6b2d027d2012"
+      ],
+      "evidence": [
+        "using Black-Scholes model"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q027",
+      "question": "Until which reporting period may a Small Finance Bank publish its Pillar 3 disclosures within seven working days of its financial reports, and what applies after that?",
+      "reference": "Up to and including the reporting period ended March 31, 2029 a bank may publish within a maximum of seven working days of publishing its financial reports; from the financial year beginning April 1, 2029 disclosures must be published concurrently with the financial reports.",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "efc8a5dba737c964"
+      ],
+      "evidence": [
+        "within a maximum of seven working days"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q028",
+      "question": "For how many years must a Small Finance Bank keep an archive of prior Pillar 3 reports on its website?",
+      "reference": "At least five years.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "efc8a5dba737c964"
+      ],
+      "evidence": [
+        "archive for at least five years"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q029",
+      "question": "In paragraph 120 of the Small Finance Banks capital adequacy directions, what replaces the words 'Table DF 4'?",
+      "reference": "\"Table CRD, Template CR4 and Template CR5\".",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "efc8a5dba737c964"
+      ],
+      "evidence": [
+        "Table CRD, Template CR4 and Template CR5"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q030",
+      "question": "Which UNSC press release is referenced in the RBI circular of September 7, 2026 amending one entry on the 1988 Taliban Sanctions List?",
+      "reference": "UNSC press release SC/16443 dated August 27, 2026.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "45b804c0ac2c09a9"
+      ],
+      "evidence": [
+        "SC/16443"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": "Exact-identifier question among nine near-identical UAPA circulars."
+    },
+    {
+      "id": "q031",
+      "question": "How many Taliban Sanctions List entries were amended by the RBI circular dated July 31, 2026, and which UNSC press release conveyed the change?",
+      "reference": "Five entries (05), conveyed by UNSC press release SC/16425 dated July 30, 2026.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "54a1d9ff333cc810"
+      ],
+      "evidence": [
+        "SC/16425"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q032",
+      "question": "How many entries of the ISIL (Da'esh) and Al-Qaida Sanctions List were amended by the RBI circular dated August 19, 2026?",
+      "reference": "21 entries, per UNSC press release SC/16435 dated August 18, 2026.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "090bb70d649aad78"
+      ],
+      "evidence": [
+        "Amendment of 21 Entries"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q033",
+      "question": "Which advances are excluded from Adjusted Net Bank Credit under the Priority Sector Lending Second Amendment Directions, 2026?",
+      "reference": "Advances against fresh FCNR(B) deposits of minimum three and maximum five years' tenor mobilised between June 8 and September 30, 2026, and advances against NRE term deposits of three years or more mobilised between June 19 and September 30, 2026 (including renewals).",
+      "question_type": "single_hop",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "0e06210faa377d52"
+      ],
+      "evidence": [
+        "excluded from calculation of Adjusted Net Bank Credit (ANBC)"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q034",
+      "question": "Under which chapter of the Reserve Bank of India Act, 1934 were the NBFC Concentration Risk Management Fourth Amendment Directions, 2026 issued?",
+      "reference": "Chapter III B of the Reserve Bank of India Act, 1934.",
+      "question_type": "single_hop",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "818be885d35f9672"
+      ],
+      "evidence": [
+        "Chapter III B of the Reserve Bank of India Act, 1934"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q035",
+      "question": "Between which hours may a bank employee or recovery agent contact or visit a borrower under the 2026 Responsible Business Conduct amendment directions?",
+      "reference": "Only between 08:00 hours and 19:00 hours, unless the borrower or guarantor has expressly requested or authorised otherwise.",
+      "question_type": "cross_circular",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "a79677d30b6e5209",
+        "e00e678c55083637",
+        "39ed9340929f0cf9",
+        "87b9ba12b8fd34c6",
+        "8afe31d59d55ae6b",
+        "8d4ba99fb0ddc89c",
+        "3451d4a614b4b790",
+        "65e695f10885c03a"
+      ],
+      "evidence": [
+        "between 08:00 hours and 19:00 hours"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q036",
+      "question": "What compensation must a lender pay a borrower for wrongful restriction of a financed mobile device's functionality, and how is it capped?",
+      "reference": "₹250 per hour until the wrongful action is remedied, capped at the amount of the loan disbursed.",
+      "question_type": "cross_circular",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "a79677d30b6e5209",
+        "e00e678c55083637",
+        "39ed9340929f0cf9",
+        "87b9ba12b8fd34c6",
+        "8afe31d59d55ae6b",
+        "8d4ba99fb0ddc89c",
+        "3451d4a614b4b790",
+        "65e695f10885c03a"
+      ],
+      "evidence": [
+        "rate of ₹250 per"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q037",
+      "question": "How many days past due must a loan be before a lender may start restricting a financed mobile device, and when may the full set of restrictions apply?",
+      "reference": "No restriction until the loan is 30 days past due (and notices have been served); the full set of restrictions, including restricting outgoing calls, only after 60 days past due.",
+      "question_type": "cross_circular",
+      "difficulty": "medium",
+      "expected_doc_ids": [
+        "a79677d30b6e5209",
+        "e00e678c55083637",
+        "39ed9340929f0cf9",
+        "87b9ba12b8fd34c6",
+        "8afe31d59d55ae6b",
+        "8d4ba99fb0ddc89c",
+        "3451d4a614b4b790",
+        "65e695f10885c03a"
+      ],
+      "evidence": [
+        "30 days past due",
+        "60 days past due"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q038",
+      "question": "Which institute's certificate must recovery agents hold under the 2026 recovery-conduct amendments?",
+      "reference": "A certificate from the Indian Institute of Banking and Finance (IIBF) after completing its Debt Recovery Agents training programme, or from an institute with a tie-up arrangement with IIBF.",
+      "question_type": "cross_circular",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "a79677d30b6e5209",
+        "e00e678c55083637",
+        "39ed9340929f0cf9",
+        "87b9ba12b8fd34c6",
+        "8afe31d59d55ae6b",
+        "8d4ba99fb0ddc89c",
+        "3451d4a614b4b790",
+        "65e695f10885c03a"
+      ],
+      "evidence": [
+        "Indian Institute of Banking and Finance (IIBF)"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q039",
+      "question": "For how long must the recording of recovery calls between a lender and a borrower be preserved?",
+      "reference": "Six months from the date of the call, or until disposal in cases that are sub judice.",
+      "question_type": "cross_circular",
+      "difficulty": "easy",
+      "expected_doc_ids": [
+        "a79677d30b6e5209",
+        "e00e678c55083637",
+        "39ed9340929f0cf9",
+        "87b9ba12b8fd34c6",
+        "8afe31d59d55ae6b",
+        "8d4ba99fb0ddc89c",
+        "3451d4a614b4b790",
+        "65e695f10885c03a"
+      ],
+      "evidence": [
+        "period of six months from the date the call was made"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q040",
+      "question": "Under which sections of the Reserve Bank of India Act, 1934 were the NBFC Responsible Business Conduct Third Amendment Directions, 2026 issued?",
+      "reference": "Sections 45JA, 45L and 45M of the Reserve Bank of India Act, 1934.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "65e695f10885c03a"
+      ],
+      "evidence": [
+        "Sections 45JA, 45L and 45M"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": "Eight near-identical RBC amendments differ mainly in the enabling provision."
+    },
+    {
+      "id": "q041",
+      "question": "Which paragraphs of the Commercial Banks Responsible Business Conduct Directions, 2025 are deleted by the Fourth Amendment Directions, 2026?",
+      "reference": "Paragraphs 408 to 416 and 442 to 454 of Chapter VIII on Responsible Lending Conduct.",
+      "question_type": "single_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "a79677d30b6e5209"
+      ],
+      "evidence": [
+        "paragraphs 408 to 416 and 442 to 454"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": "The SFB amendment carries the same paragraph numbers; only the Commercial Banks circular is correct for this question."
+    },
+    {
+      "id": "q042",
+      "question": "The Small Finance Banks Governance Third Amendment and Financial Statements Fourth Amendment were both issued consequent to which capital adequacy amendment, and when do they all come into force?",
+      "reference": "Consequent to the Reserve Bank of India (Small Finance Banks - Prudential Norms on Capital Adequacy) Fifth Amendment Directions, 2026 on Basel Pillar 3 disclosures; all three come into force on April 1, 2027.",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "bc7c6b2d027d2012",
+        "5aa91cd3642a8772",
+        "efc8a5dba737c964"
+      ],
+      "evidence": [
+        "pertaining to Basel Pillar 3 disclosures",
+        "come into effect from April 1, 2027"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q043",
+      "question": "The PSL amendment cites the CRR/SLR exemption window for fresh FCNR(B) deposits as running from June 8 to September 30, 2026. To what end date did the August 25, 2026 CRR/SLR amendment for commercial banks shorten that window?",
+      "reference": "To August 31, 2026: the Fourth Amendment substituted 'between June 8, 2026 and August 31, 2026' for the September 30 end date.",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "0e06210faa377d52",
+        "dcfaa778462df0b7"
+      ],
+      "evidence": [
+        "between June 08, 2026 and September 30, 2026",
+        "between June 8, 2026 and August 31, 2026"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q044",
+      "question": "The HFC Third Amendment points Housing Finance Companies to paragraphs of the NBFC Responsible Business Conduct Directions for recovery conduct. What hourly compensation do those NBFC provisions prescribe for wrongful restriction of a financed device?",
+      "reference": "HFCs must comply with paragraphs 100A to 100AB of the NBFC Responsible Business Conduct Directions, which prescribe compensation of ₹250 per hour until remedied, capped at the loan amount disbursed.",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "c25394f377320807",
+        "65e695f10885c03a"
+      ],
+      "evidence": [
+        "paragraphs 100A",
+        "rate of ₹250 per"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q045",
+      "question": "How many circulars in total were withdrawn or repealed by the FEMA circular review and the Department of Supervision consolidation circular combined?",
+      "reference": "635: seven withdrawn under the FEMA review plus 628 repealed by the Department of Supervision.",
+      "question_type": "multi_hop",
+      "difficulty": "hard",
+      "expected_doc_ids": [
+        "3c471e116ed2652e",
+        "6ca3565b0b654cf0"
+      ],
+      "evidence": [
+        "seven circulars as listed at Annex",
+        "628 circulars listed in the Annex"
+      ],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q046",
+      "question": "What Cash Reserve Ratio percentage must scheduled commercial banks currently maintain?",
+      "reference": "Not answerable: the CRR/SLR circulars in the corpus amend exemption windows and never state the CRR rate.",
+      "question_type": "negative",
+      "difficulty": "hard",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q047",
+      "question": "What penalty amount does the RBI levy on a bank for each counterfeit note it fails to impound?",
+      "reference": "Not answerable: the FICN circular says banks shall be penalised for breaches but gives no amount.",
+      "question_type": "negative",
+      "difficulty": "hard",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q048",
+      "question": "What is the maximum interest rate a Payments Bank may offer on savings deposits?",
+      "reference": "Not answerable: the Payments Banks amendment concerns disclosure of rates, not their level.",
+      "question_type": "negative",
+      "difficulty": "medium",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q049",
+      "question": "What was India's real GDP growth rate in the first quarter of financial year 2026-27?",
+      "reference": "Not answerable: macroeconomic statistics are not in the corpus.",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
+      "notes": null
+    },
+    {
+      "id": "q050",
+      "question": "How do I reset my State Bank of India internet banking password?",
+      "reference": "Not answerable: customer-service procedure of a specific bank, out of corpus.",
+      "question_type": "negative",
+      "difficulty": "easy",
+      "expected_doc_ids": [],
+      "evidence": [],
+      "generated_by": "claude",
+      "verified_by": null,
       "notes": null
     }
   ]

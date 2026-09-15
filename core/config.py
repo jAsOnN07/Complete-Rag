@@ -128,6 +128,12 @@ class Settings(BaseSettings):
     groq_reasoning_effort: str | None = "low"
     llm_max_tokens: int = Field(default=2048, gt=0)
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    # RAGAS judge. Unset = the gateway config (primary + fallback), which is
+    # the production path but also the generator: a judge that is not the
+    # generator avoids self-preference and, on free tiers, a shared daily
+    # quota. When set, the judge calls this provider/model directly.
+    ragas_judge_provider: str | None = None
+    ragas_judge_model: str | None = None
 
     # Observability
     langfuse_public_key: SecretStr | None = None
@@ -161,6 +167,7 @@ class Settings(BaseSettings):
 
     @field_validator(
         "portkey_config_slug", "groq_reasoning_effort",
+        "ragas_judge_provider", "ragas_judge_model",
         "bedrock_rerank_model_arn", "bedrock_rerank_region",
         "bedrock_guardrail_id", mode="before",
     )
