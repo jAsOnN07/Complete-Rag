@@ -68,3 +68,16 @@ def test_enabled_reflects_the_inner_tracer():
         enabled = True
 
     assert CollectingTracer(Real()).enabled is True
+
+
+async def test_an_update_stamps_the_duration_so_far():
+    """Streaming spans close late (generator finalisation); the last update
+    must leave a usable duration behind for the response summary."""
+    tracer = CollectingTracer(NoOpTracer())
+    with request_scope() as scope:
+        cm = tracer.observe("llm.answer", as_type="generation")
+        handle = await cm.__aenter__()
+        await asyncio.sleep(0.03)
+        handle.update(usage_details={"input": 1, "output": 1})
+        assert scope.spans[0].duration_ms >= 5  # before the span has exited
+        await cm.__aexit__(None, None, None)

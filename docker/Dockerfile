@@ -43,6 +43,10 @@ COPY --chown=app:app observability ./observability
 COPY --chown=app:app retrieval ./retrieval
 COPY --chown=app:app evaluation ./evaluation
 COPY --chown=app:app scripts ./scripts
+# The showcase UI and what it reads: the corpus manifest (titles, dates)
+# and the published eval runs; the corpus itself never ships.
+COPY --chown=app:app ui ./ui
+COPY --chown=app:app data/manifest.json ./data/manifest.json
 
 USER app
 EXPOSE 8000

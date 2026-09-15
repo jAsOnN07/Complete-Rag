@@ -49,6 +49,32 @@ One answer in that run was served by **Groq**: Gemini returned an error
 mid-eval, Portkey failed over, and the answer came back correct with two
 citations. Nobody had to do anything.
 
+## Try it — the showcase UI
+
+The API serves its own UI at `/` (no framework, no build step, ships in the
+same image). It exists so that everything this README claims can be *seen*:
+
+- **Ask** — streamed answers with citation chips that jump to the retrieved
+  chunk; every candidate's rerank score drawn against the gate; a
+  *served-by* badge that turns amber when the gateway failed over; and a
+  plain-language note when a question is refused (the score that gated it,
+  or the guard violation) — with the token count, which is zero.
+- **Trace** — a span waterfall for the last request built from the very
+  spans Langfuse receives (duration, tokens, cost, provider per span), a deep
+  link to the trace, the resolved configuration, and recent traffic from the
+  Langfuse API: p50/p95 latency, cost per query, and the provider split,
+  which is the failover rate as a number.
+- **Evaluate** — the published runs with per-question rows and RAGAS cells,
+  the comparison tables behind every default, a gold-set explorer that runs
+  any question live and highlights the evidence quote in the retrieved
+  chunks with the eval's own normalisation, and an eval runner that streams
+  progress from the same `evaluate()` the CLI uses.
+
+A shared token (`UI_ACCESS_TOKEN`) gates everything that spends provider
+quota; health probes and the page itself stay open. The deployment is
+scaled to zero between demos — `python -m scripts.deploy_fargate scale 1`,
+wait a minute, open the printed URL.
+
 ## Architecture
 
 ```
@@ -238,7 +264,7 @@ python -m scripts.deploy_fargate scale 0        # stop paying
 ```
 
 **Deployed and measured** (0.5 vCPU / 1 GB Fargate, us-east-1): image
-**442 MB**, built in 235 s (12 s on a cached rebuild); **cold start 35 s**
+**442 MB** including the UI, built in 235 s (12 s on a cached rebuild); **cold start 33–35 s**
 from task `RUNNING` to the first healthy response (BM25 encoder load and
 guardrails imports); first `/query` **9.0 s** end to end, two resolved
 citations, `grounded: true`. The service is scaled to zero between demos —

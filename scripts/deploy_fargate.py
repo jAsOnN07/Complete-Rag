@@ -379,16 +379,24 @@ def cmd_deploy(settings: Settings, args: argparse.Namespace) -> int:
                            launchType="FARGATE", networkConfiguration=network)
         say(f"  created service {SERVICE}")
 
-    say("  waiting for the task to reach RUNNING ...")
+    # A rolling update keeps the old task RUNNING until the new one is healthy,
+    # so "a task is RUNNING" is not "the new revision is serving". Wait for a
+    # single PRIMARY deployment at the desired count - verify then hits the
+    # revision that was just registered, not its predecessor.
+    say("  waiting for the deployment to reach a steady state ...")
     ip = None
-    for _ in range(40):
-        time.sleep(15)
-        ip, status = _task_ip(session)
-        say(f"    {status}")
-        if status == "RUNNING" and ip:
-            break
+    for _ in range(60):
+        time.sleep(10)
+        svc = ecs.describe_services(cluster=CLUSTER, services=[SERVICE])["services"][0]
+        deployments = svc["deployments"]
+        primary = next((d for d in deployments if d["status"] == "PRIMARY"), None)
+        say(f"    {', '.join(f'{d['status']} {d['taskDefinition'].rsplit('/', 1)[-1]} x{d['runningCount']}' for d in deployments)}")
+        if primary and len(deployments) == 1 and primary["runningCount"] == svc["desiredCount"] > 0:
+            ip, status = _task_ip(session)
+            if status == "RUNNING" and ip:
+                break
     if not ip:
-        say("  task did not reach RUNNING; check CloudWatch " + LOG_GROUP)
+        say("  deployment did not stabilise; check CloudWatch " + LOG_GROUP)
         return 1
     say(f"public ip: {ip}  ->  http://{ip}:{PORT}/healthz")
     return 0
@@ -454,9 +462,19 @@ def cmd_verify(settings: Settings, args: argparse.Namespace) -> int:
         for path in ("/healthz", "/readyz"):
             r = c.get(base + path)
             say(f"GET {path} -> {r.status_code} {r.text[:160]}")
+        token = settings.ui_access_token.get_secret_value() if settings.ui_access_token else None
+        headers = {"X-Access-Token": token} if token else {}
+        r = c.get(base + "/")
+        say(f"GET / -> {r.status_code} {'showcase UI' if '<title>' in r.text else r.text[:80]}")
+        r = c.get(base + "/ui/api/meta", headers=headers)
+        say(f"GET /ui/api/meta -> {r.status_code} points={r.json().get('points') if r.status_code == 200 else r.text[:80]}"
+            f"  token_required={r.json().get('token_required') if r.status_code == 200 else '?'}")
+        if token:
+            r = c.post(base + "/query", json={"question": "Which five new districts were formed in Ladakh?"})
+            say(f"POST /query without token -> {r.status_code} (expected 401)")
         question = args.question or "Which five new districts have been formed in the Union Territory of Ladakh?"
         t0 = time.perf_counter()
-        r = c.post(base + "/query", json={"question": question})
+        r = c.post(base + "/query", json={"question": question}, headers=headers)
         say(f"POST /query -> {r.status_code} in {time.perf_counter() - t0:.1f}s")
         body = r.json()
         say(json.dumps({k: body.get(k) for k in ("status", "answer", "grounded", "latency_ms", "config_fingerprint")}, indent=1, ensure_ascii=False))

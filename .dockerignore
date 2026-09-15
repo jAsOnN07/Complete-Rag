@@ -4,7 +4,8 @@
 .env
 .env.*
 !.env.example
-data/
+data/*
+!data/manifest.json
 evaluation/results/*
 !evaluation/results/published/
 tests/
@@ -24,3 +25,4 @@ CLAUDE.md
 AI_Engineer_Portfolio_Projects.md
 .vscode/
 .idea/
+!evaluation/results/published/*.md

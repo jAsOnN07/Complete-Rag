@@ -218,6 +218,10 @@ class CollectingTracer:
             class _Handle:
                 def update(self, **kwargs: Any) -> None:
                     record.absorb(kwargs)
+                    # Stamp the duration so far: a streaming LLM span closes only
+                    # when its generator is finalised, which can be after the
+                    # response summary is built. Its last update carries usage.
+                    record.duration_ms = round((time.perf_counter() - t0) * 1000, 2)
                     inner_handle.update(**kwargs)
 
             try:
