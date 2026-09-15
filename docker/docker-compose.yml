@@ -1,0 +1,32 @@
+# Local run: the API plus a local Qdrant for anyone without a Qdrant Cloud key.
+#
+#   cp .env.example .env   # fill in PORTKEY / GROQ / COHERE / LANGFUSE keys
+#   docker compose -f docker/docker-compose.yml up --build
+#   python -m ingestion.pipeline      # from the host, with QDRANT_URL=http://localhost:6333
+#
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    ports: ["6333:6333"]
+    volumes: ["qdrant_storage:/qdrant/storage"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file: ../.env
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_API_KEY: ""
+    ports: ["8000:8000"]
+    depends_on:
+      qdrant:
+        condition: service_healthy
+
+volumes:
+  qdrant_storage:

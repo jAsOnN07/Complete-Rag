@@ -1,18 +1,24 @@
-# ---- Core (in use) ----
+# Production runtime. This is what the container installs.
+#
+# The deployed stack is Gemini (via Portkey) + Cohere embed/rerank + Qdrant
+# Cloud, so no ML model runs in the container except the ~10 MB BM25 sparse
+# encoder (fastembed/onnxruntime). The local dense embedder and cross-encoder
+# used for development and the eval comparisons live in requirements-local.txt
+# and are never installed in the image.
+
+# ---- Core ----
 pydantic>=2.9,<3
 pydantic-settings>=2.5,<3
 python-dotenv>=1.0,<2
 
-# ---- AWS / Bedrock ----
-# boto3 is synchronous; every call is wrapped in asyncio.to_thread rather than
-# using aioboto3, whose bedrock-runtime coverage (apply_guardrail in particular)
-# is unverified. The seam is isolated so swapping later is cheap.
+# ---- AWS (Bedrock backends, SSM; boto3 is synchronous - every call runs in
+# asyncio.to_thread behind one seam) ----
 boto3>=1.35
 
 # ---- Vector store ----
 qdrant-client>=1.12,<2
 
-# ---- Ingestion ----
+# ---- Ingestion (CLI, not the request path; kept here so one env serves both) ----
 pymupdf>=1.24
 langchain-text-splitters>=0.3
 beautifulsoup4>=4.12
@@ -25,25 +31,19 @@ fastapi>=0.115,<1
 uvicorn[standard]>=0.32,<1
 
 # ---- Observability ----
-# v4 is current and is itself an OpenTelemetry SDK; v3 has a different API.
-# The TracerProvider is built in observability/otel.py and shared with the
-# FastAPI instrumentation so HTTP spans root every trace.
+# Langfuse v4 is itself an OpenTelemetry SDK; the TracerProvider is built in
+# observability/otel.py and shared with the FastAPI instrumentation.
 langfuse>=4.0,<5
 opentelemetry-instrumentation-fastapi>=0.48b0
 
 # ---- Retrieval ----
 cohere>=5.0               # hosted embeddings + rerank (production default)
-fastembed>=0.8            # local dense (dev) + BM25 sparse encoders, ONNX
-sentence-transformers>=3.2  # cross-encoder reranker; install torch CPU-only:
-                            #   pip install torch --index-url https://download.pytorch.org/whl/cpu
+fastembed>=0.8            # BM25 sparse encoder (and the local dense model in dev)
 
 # ---- LLM gateway ----
 portkey-ai>=2.3
 
 # ---- Guardrails ----
-# Pulls litellm + openai transitively (~image-size concern for M10). Hub
-# telemetry is forced off in code; see guards/guardrails_ai.py.
+# Pulls litellm + openai transitively. Hub telemetry is forced off in code;
+# see guards/guardrails_ai.py.
 guardrails-ai>=0.11,<0.12
-
-# ---- Later milestones (not yet imported) ----
-# M4  RAGAS tier        : ragas>=0.2,<0.4

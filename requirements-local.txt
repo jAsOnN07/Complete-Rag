@@ -1,0 +1,9 @@
+# Local ML backends for development and the eval comparisons. Not installed in
+# the container: the deployed stack is hosted (Cohere + Gemini).
+#
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements-local.txt
+-r requirements.txt
+
+sentence-transformers>=3.2   # RERANKER_BACKEND=cross_encoder
+# fastembed (already in requirements.txt) provides EMBEDDING_BACKEND=fastembed

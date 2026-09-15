@@ -25,3 +25,17 @@ def test_every_suite_override_survives_model_copy_without_validation():
             copied = base.model_copy(update=overrides)
             copied.collection_name()  # would raise on an un-coerced string enum
             copied.fingerprint()
+
+
+def test_deploy_source_zip_never_contains_secrets_or_corpus(tmp_path):
+    """The build artifact goes to S3 and CodeBuild; .env and PDFs must never ride along."""
+    import io, zipfile
+    from scripts.deploy_fargate import zip_source
+
+    (tmp_path / ".env").write_text("SECRET=x")
+    (tmp_path / "data" / "raw").mkdir(parents=True); (tmp_path / "data" / "raw" / "a.pdf").write_bytes(b"%PDF")
+    (tmp_path / "tests").mkdir(); (tmp_path / "tests" / "t.py").write_text("")
+    (tmp_path / "api").mkdir(); (tmp_path / "api" / "main.py").write_text("")
+    (tmp_path / "docker").mkdir(); (tmp_path / "docker" / "Dockerfile").write_text("FROM x")
+    names = zipfile.ZipFile(io.BytesIO(zip_source(tmp_path))).namelist()
+    assert names == ["api/main.py", "docker/Dockerfile"]
