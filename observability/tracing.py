@@ -129,10 +129,16 @@ def build_tracer(settings: Any = None) -> Tracer:
     try:
         from langfuse import Langfuse
 
+        from observability.otel import build_tracer_provider
+
+        # One provider for Langfuse and FastAPI instrumentation alike, built
+        # with this service's resource. Langfuse attaches its exporter to it.
+        provider = build_tracer_provider(settings.otel_service_name)
         client = Langfuse(
             public_key=settings.langfuse_public_key.get_secret_value(),
             secret_key=settings.langfuse_secret_key.get_secret_value(),
             host=settings.langfuse_host,
+            tracer_provider=provider,
         )
         return LangfuseTracer(client)
     except Exception:  # noqa: BLE001 - observability must never break the pipeline

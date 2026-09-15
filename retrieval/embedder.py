@@ -18,6 +18,7 @@ import json
 from typing import Any, Sequence
 
 from core.errors import UpstreamServiceError
+from observability.pricing import embed_cost
 from observability.tracing import Tracer, get_tracer
 
 
@@ -247,8 +248,15 @@ class CohereEmbedder:
     def dim(self) -> int:
         return self._dim
 
-    async def _embed(self, texts: Sequence[str], input_type: str) -> list[list[float]]:
+    @staticmethod
+    def _billed_tokens(response: Any) -> int:
+        meta = getattr(response, "meta", None)
+        units = getattr(meta, "billed_units", None) if meta else None
+        return int(getattr(units, "input_tokens", 0) or 0)
+
+    async def _embed(self, texts: Sequence[str], input_type: str) -> tuple[list[list[float]], int]:
         out: list[list[float]] = []
+        billed = 0
         for start in range(0, len(texts), self.BATCH):
             batch = list(texts[start : start + self.BATCH])
             await self._pace(int(sum(len(t) for t in batch) / self.CHARS_PER_TOKEN))
@@ -265,26 +273,31 @@ class CohereEmbedder:
                     "cohere", "embed", f"{type(exc).__name__}: {exc}", cause=exc
                 ) from exc
             out.extend([list(v) for v in response.embeddings.float_])
-        return out
+            billed += self._billed_tokens(response)
+        return out, billed
 
     async def embed_query(self, text: str) -> list[float]:
         async with self._tracer.observe(
             "embed.query", as_type="embedding", input={"chars": len(text)}
         ) as span:
-            vector = (await self._embed([text], "search_query"))[0]
+            vectors, billed = await self._embed([text], "search_query")
             span.update(
-                output={"dim": len(vector)},
+                output={"dim": len(vectors[0])},
+                usage_details={"input": billed},
+                cost_details=embed_cost(self._model_id, billed),
                 metadata={"model_id": self._model_id, "backend": "cohere"},
             )
-            return vector
+            return vectors[0]
 
     async def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
         async with self._tracer.observe(
             "embed.documents", as_type="embedding", input={"count": len(texts)}
         ) as span:
-            vectors = await self._embed(texts, "search_document")
+            vectors, billed = await self._embed(texts, "search_document")
             span.update(
                 output={"count": len(vectors)},
+                usage_details={"input": billed},
+                cost_details=embed_cost(self._model_id, billed),
                 metadata={"model_id": self._model_id, "dim": self._dim, "backend": "cohere"},
             )
             return vectors

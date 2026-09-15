@@ -16,6 +16,7 @@ from typing import Any, Literal, Sequence
 
 from core.errors import UpstreamServiceError
 from core.models import ScoredChunk
+from observability.pricing import rerank_cost
 from observability.tracing import Tracer, get_tracer
 
 ScoreScale = Literal["logit", "unit", "passthrough"]
@@ -121,9 +122,14 @@ class CohereReranker:
                 ) from exc
             ordered = [(candidates[r.index], float(r.relevance_score)) for r in response.results]
             out = _rescored(ordered, top_n)
+            meta = getattr(response, "meta", None)
+            units = getattr(meta, "billed_units", None) if meta else None
+            searches = int(getattr(units, "search_units", 0) or 0) or 1
             span.update(
                 output={"top_score": out[0].score if out else None, "returned": len(out)},
-                metadata={"model": self._model_id, "scale": self.score_scale},
+                usage_details={"input": searches},
+                cost_details=rerank_cost(self._model_id, searches),
+                metadata={"model": self._model_id, "scale": self.score_scale, "search_units": searches},
             )
             return out
 

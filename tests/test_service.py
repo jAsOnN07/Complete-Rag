@@ -249,3 +249,36 @@ async def test_not_found_path_never_reaches_the_output_guard(store, tracer):
     answer = await service.answer("capital of France")
     assert answer.status is AnswerStatus.NOT_FOUND_IN_CONTEXT
     assert guard.calls == []
+
+
+async def test_allowed_input_still_records_its_injection_score(store, tracer):
+    """The score is data for false-positive analysis even when nothing is blocked."""
+    service = RagService(
+        embedder=FakeEmbedder(), store=store, llm=FakeLlm("Answer [1]."), input_guard=FakeInputGuard(),
+        top_k=10, rerank_top_n=3, relevance_threshold=0.0, tracer=tracer,
+    )
+    answer = await service.answer("KYC requirements")
+    assert answer.guard is not None
+    assert answer.guard.input_allowed is True
+    assert answer.guard.injection_score == pytest.approx(0.01)
+
+
+async def test_concurrent_requests_do_not_share_guard_verdicts(store, tracer):
+    """One service instance serves many requests; verdicts must never leak across them."""
+    import asyncio
+
+    class ScoringGuard:
+        async def check(self, question):
+            from guards.input_guards import InputGuardResult
+
+            slow = "slow" in question
+            await asyncio.sleep(0.02 if slow else 0)
+            return InputGuardResult(allowed=True, injection_score=0.9 if slow else 0.1)
+
+    service = RagService(
+        embedder=FakeEmbedder(), store=store, llm=FakeLlm("Answer [1]."), input_guard=ScoringGuard(),
+        top_k=10, rerank_top_n=3, relevance_threshold=0.0, tracer=tracer,
+    )
+    slow, fast = await asyncio.gather(service.answer("slow KYC question"), service.answer("KYC question"))
+    assert slow.guard.injection_score == pytest.approx(0.9)
+    assert fast.guard.injection_score == pytest.approx(0.1)

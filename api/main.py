@@ -58,6 +58,14 @@ def create_app(service: object | None = None) -> FastAPI:
     app.state.service = service
     app.include_router(router)
 
+    # Tracer first (it installs the shared provider), then HTTP instrumentation
+    # on that provider, so request spans are the root of every trace.
+    from observability.otel import instrument_app
+    from observability.tracing import get_tracer
+
+    get_tracer()
+    instrument_app(app)
+
     @app.exception_handler(UpstreamServiceError)
     async def _upstream_error_handler(
         request: Request, exc: UpstreamServiceError

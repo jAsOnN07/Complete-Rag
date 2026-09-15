@@ -16,6 +16,7 @@ from typing import Any, AsyncIterator
 
 from core.errors import UpstreamServiceError
 from core.ports import LlmDelta, LlmResult
+from observability.pricing import llm_cost
 from observability.tracing import Tracer, get_tracer
 
 PROVIDER = "bedrock"
@@ -228,6 +229,7 @@ class PortkeyLlmClient:
             span.update(
                 output={"chars": len(text), "served_model": served},
                 usage_details={"input": result.input_tokens, "output": result.output_tokens},
+                cost_details=llm_cost(served, result.input_tokens, result.output_tokens),
                 metadata={"provider": provider, "stop_reason": result.stop_reason},
             )
             return result
@@ -284,6 +286,7 @@ class PortkeyLlmClient:
             span.update(
                 output={"chars": chars, "served_model": served},
                 usage_details={"input": usage_in, "output": usage_out},
+                cost_details=llm_cost(served, usage_in, usage_out),
                 metadata={"provider": provider, "stop_reason": stop},
             )
             yield LlmDelta(

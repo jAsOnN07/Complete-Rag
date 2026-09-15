@@ -27,7 +27,8 @@ class FakeCohere:
         if self.error:
             raise self.error
         vecs = [[float(i + 1)] * self.dim for i in range(len(kw["texts"]))]
-        return SimpleNamespace(embeddings=SimpleNamespace(float_=vecs))
+        meta = SimpleNamespace(billed_units=SimpleNamespace(input_tokens=7 * len(kw["texts"])))
+        return SimpleNamespace(embeddings=SimpleNamespace(float_=vecs), meta=meta)
 
     async def rerank(self, **kw):
         self.rerank_calls.append(kw)
@@ -35,7 +36,10 @@ class FakeCohere:
             raise self.error
         scores = self.scores or [0.9, 0.05, 0.5][: len(kw["documents"])]
         order = sorted(range(len(scores)), key=lambda i: -scores[i])[: kw["top_n"]]
-        return SimpleNamespace(results=[SimpleNamespace(index=i, relevance_score=scores[i]) for i in order])
+        return SimpleNamespace(
+            results=[SimpleNamespace(index=i, relevance_score=scores[i]) for i in order],
+            meta=SimpleNamespace(billed_units=SimpleNamespace(search_units=1)),
+        )
 
 
 # ---- embed --------------------------------------------------------------------
@@ -158,3 +162,18 @@ async def test_no_pacing_when_budget_disabled(monkeypatch):
     e = CohereEmbedder(client=FakeCohere(), model_id="m", dim=4, tokens_per_minute=0, tracer=RecordingTracer())
     await e.embed_documents(["x" * 1000] * 200)
     assert called == []
+
+
+async def test_embed_and_rerank_report_billed_units_and_cost():
+    tracer = RecordingTracer()
+    e = CohereEmbedder(client=FakeCohere(), model_id="embed-v4.0", dim=4, tracer=tracer)
+    await e.embed_documents(["a", "b", "c"])
+    upd = [u for u in tracer.updates if u["span"] == "embed.documents"][0]
+    assert upd["usage_details"] == {"input": 21}
+    assert upd["cost_details"]["total"] == pytest.approx(21 / 1e6 * 0.10)
+
+    r = CohereReranker(client=FakeCohere(), model_id="rerank-v3.5", tracer=tracer)
+    await r.rerank("q", CANDS, top_n=2)
+    upd = [u for u in tracer.updates if u["span"] == "rerank.cohere"][0]
+    assert upd["usage_details"] == {"input": 1}
+    assert upd["cost_details"] == {"total": 0.002}

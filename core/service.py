@@ -77,39 +77,57 @@ class RagService:
             return await self._reranker.rerank(question, candidates, limit)
         return candidates[:limit]
 
-    async def guard_input(self, question: str) -> GuardReport | None:
-        """Run the input guard. Returns a report only when the question is blocked.
+    async def guard_input(self, question: str) -> Any | None:
+        """Run the input guard and return its verdict (None when no guard is wired).
 
         Runs before retrieval, not merely before the gateway: a blocked question
-        should cost nothing - no embedding, no search, no rerank.
+        should cost nothing - no embedding, no search, no rerank. The verdict is
+        returned, never stored on the service, because one service instance
+        serves concurrent requests.
         """
         if self._input_guard is None:
             return None
-        result = await self._input_guard.check(question)
-        if result.allowed:
-            return None
+        return await self._input_guard.check(question)
+
+    @staticmethod
+    def _blocked_report(verdict: Any) -> GuardReport:
         return GuardReport(
             input_allowed=False,
-            input_violations=[f"{v.kind}: {v.detail}" for v in result.violations],
-            input_degraded=result.degraded,
-            injection_score=result.injection_score,
+            input_violations=[f"{v.kind}: {v.detail}" for v in verdict.violations],
+            input_degraded=verdict.degraded,
+            injection_score=verdict.injection_score,
+        )
+
+    @staticmethod
+    def _report(verdict: Any | None, **output_fields: Any) -> GuardReport:
+        """The answer's guard report: input verdict plus whatever the output guard said."""
+        return GuardReport(
+            input_allowed=True,
+            input_degraded=bool(verdict.degraded) if verdict else False,
+            injection_score=verdict.injection_score if verdict else None,
+            **output_fields,
         )
 
     async def answer(self, question: str, *, top_n: int | None = None) -> Answer:
-        blocked = await self.guard_input(question)
-        if blocked is not None:
-            return Answer.blocked_input(blocked)
+        verdict = await self.guard_input(question)
+        if verdict is not None and not verdict.allowed:
+            return Answer.blocked_input(self._blocked_report(verdict))
         candidates = await self.retrieve(question, top_n=top_n)
-        return await self.answer_from(question, candidates, input_checked=True)
+        return await self.answer_from(question, candidates, input_verdict=verdict, input_checked=True)
 
     async def answer_from(
-        self, question: str, candidates: Sequence[ScoredChunk], *, input_checked: bool = False
+        self,
+        question: str,
+        candidates: Sequence[ScoredChunk],
+        *,
+        input_checked: bool = False,
+        input_verdict: Any | None = None,
     ) -> Answer:
         """Generation half, split out so debug mode does not retrieve twice."""
         if not input_checked:
-            blocked = await self.guard_input(question)
-            if blocked is not None:
-                return Answer.blocked_input(blocked)
+            input_verdict = await self.guard_input(question)
+            if input_verdict is not None and not input_verdict.allowed:
+                return Answer.blocked_input(self._blocked_report(input_verdict))
 
         async with self._tracer.observe(
             "rag.answer", input={"question": question}
@@ -150,7 +168,8 @@ class RagService:
                     answer=text,
                     grounding_sources=self._prompt.grounding_sources(relevant),
                 )
-                report = GuardReport(
+                report = self._report(
+                    input_verdict,
                     output_action=verdict.action,
                     output_reasons=verdict.reasons,
                     grounding_score=verdict.grounding_score,
@@ -167,6 +186,8 @@ class RagService:
                 text = verdict.text
                 if verdict.grounded is not None:
                     grounded = verdict.grounded
+            else:
+                report = self._report(input_verdict)
 
             answer = Answer(
                 answer=text,
@@ -201,9 +222,12 @@ class RagService:
         the final event. A grounding failure cannot retract streamed tokens -
         that is why /query (non-streaming) is what the eval measures.
         """
-        blocked = await self.guard_input(question)
-        if blocked is not None:
-            yield StreamEvent(event="final", data=Answer.blocked_input(blocked).model_dump(mode="json"))
+        input_verdict = await self.guard_input(question)
+        if input_verdict is not None and not input_verdict.allowed:
+            yield StreamEvent(
+                event="final",
+                data=Answer.blocked_input(self._blocked_report(input_verdict)).model_dump(mode="json"),
+            )
             return
 
         candidates = await self.retrieve(question, top_n=top_n)
@@ -277,12 +301,13 @@ class RagService:
 
         citations, invalid = parse_citations(text, payload.label_map)
         grounded = bool(citations)
-        report: GuardReport | None = None
+        report: GuardReport | None = self._report(input_verdict)
         if self._output_guard is not None:
             verdict = await self._output_guard.check(
                 question=question, answer=text, grounding_sources=self._prompt.grounding_sources(relevant),
             )
-            report = GuardReport(
+            report = self._report(
+                input_verdict,
                 output_action=verdict.action, output_reasons=verdict.reasons,
                 grounding_score=verdict.grounding_score, grounding_threshold=verdict.grounding_threshold,
                 pii_redacted=verdict.pii_redacted,

@@ -26,7 +26,10 @@ uvicorn[standard]>=0.32,<1
 
 # ---- Observability ----
 # v4 is current and is itself an OpenTelemetry SDK; v3 has a different API.
+# The TracerProvider is built in observability/otel.py and shared with the
+# FastAPI instrumentation so HTTP spans root every trace.
 langfuse>=4.0,<5
+opentelemetry-instrumentation-fastapi>=0.48b0
 
 # ---- Retrieval ----
 cohere>=5.0               # hosted embeddings + rerank (production default)
@@ -44,4 +47,3 @@ guardrails-ai>=0.11,<0.12
 
 # ---- Later milestones (not yet imported) ----
 # M4  RAGAS tier        : ragas>=0.2,<0.4
-# M9  OTEL spans        : opentelemetry-instrumentation-fastapi>=0.48b0
