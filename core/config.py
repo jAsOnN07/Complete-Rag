@@ -13,7 +13,6 @@ from core.models import ChunkStrategy
 
 RerankerBackend = Literal["cross_encoder", "cohere", "bedrock", "none"]
 EmbeddingBackend = Literal["cohere", "bedrock", "fastembed"]
-LlmPrimary = Literal["anthropic", "bedrock"]
 LlmBackend = Literal["portkey", "bedrock"]
 RetrievalMode = Literal["dense", "hybrid"]
 OutputGuardBackend = Literal["bedrock", "none"]
@@ -102,15 +101,15 @@ class Settings(BaseSettings):
     # fallback); "bedrock" calls Bedrock directly and exists for the M2
     # integration check only.
     llm_backend: LlmBackend = "portkey"
-    # Which provider is the primary target in the Portkey fallback chain.
-    # anthropic = Claude API direct (bare ids, e.g. claude-sonnet-5);
-    # bedrock  = Claude on Bedrock (inference-profile ids).
-    llm_primary: LlmPrimary = "anthropic"
-    anthropic_model_id: str = "claude-sonnet-5"
+    # Primary target in the Portkey fallback chain: any Model Catalog provider
+    # slug plus that provider's model id. The gateway exists precisely so this
+    # is config - the primary has been Bedrock, Anthropic and Google without an
+    # application change. Groq is the fallback.
+    llm_primary_provider: str = "@google"
+    llm_primary_model: str = "gemini-3.5-flash"
     portkey_api_key: SecretStr | None = None
     portkey_base_url: str = "https://api.portkey.ai/v1"
     portkey_config_slug: str | None = None
-    portkey_anthropic_provider: str = "@anthropic"
     portkey_bedrock_provider: str = "@aws"
     portkey_groq_provider: str = "@groq"
     groq_api_key: SecretStr | None = None
@@ -200,8 +199,10 @@ class Settings(BaseSettings):
 
     @property
     def primary_model_id(self) -> str:
-        """The model the gateway tries first; provider-specific id form."""
-        return self.anthropic_model_id if self.llm_primary == "anthropic" else self.bedrock_llm_model_id
+        """The model the gateway tries first, in that provider's own id form."""
+        if self.llm_backend == "bedrock":
+            return self.bedrock_llm_model_id
+        return self.llm_primary_model
 
     @property
     def embed_model_id(self) -> str:
@@ -260,7 +261,7 @@ class Settings(BaseSettings):
             ),
             "relevance_threshold": self.resolved_relevance_threshold,
             "relevance_threshold_dense": self.threshold_for("dense"),
-            "llm_primary": self.llm_primary,
+            "llm_primary_provider": self.llm_primary_provider,
             "primary_model_id": self.primary_model_id,
             "llm_backend": self.llm_backend,
             "groq_model_id": self.groq_model_id,

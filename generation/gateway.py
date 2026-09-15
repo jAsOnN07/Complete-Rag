@@ -26,6 +26,7 @@ FALLBACK_STATUS_CODES: tuple[int, ...] = (400, 401, 403, 404, 408, 429, 500, 502
 
 PROVIDER_ANTHROPIC = "anthropic"
 PROVIDER_BEDROCK = "bedrock"
+PROVIDER_GOOGLE = "google"
 PROVIDER_GROQ = "groq"
 PROVIDER_UNKNOWN = "unknown"
 
@@ -37,9 +38,7 @@ def target_model(provider_slug: str, model_id: str) -> str:
 
 
 def primary_target(settings: Any) -> str:
-    if settings.llm_primary == "anthropic":
-        return target_model(settings.portkey_anthropic_provider, settings.anthropic_model_id)
-    return target_model(settings.portkey_bedrock_provider, settings.bedrock_llm_model_id)
+    return target_model(settings.llm_primary_provider, settings.llm_primary_model)
 
 
 def fallback_config(settings: Any) -> dict[str, Any]:
@@ -79,6 +78,8 @@ def provider_from_model(served_model: str | None, settings: Any) -> str:
         return PROVIDER_BEDROCK
     if name.startswith("claude"):
         return PROVIDER_ANTHROPIC
+    if name.startswith("gemini"):
+        return PROVIDER_GOOGLE
     groq_tail = settings.groq_model_id.lower().split("/")[-1]
     if groq_tail and groq_tail in name:
         return PROVIDER_GROQ
