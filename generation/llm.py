@@ -187,7 +187,7 @@ class PortkeyLlmClient:
 
     @property
     def model_id(self) -> str:
-        return self._settings.bedrock_llm_model_id
+        return self._settings.primary_model_id
 
     async def complete(self, system: str, user: str) -> LlmResult:
         from generation.gateway import provider_from_model
@@ -196,7 +196,7 @@ class PortkeyLlmClient:
             "llm.answer",
             as_type="generation",
             input={"system_chars": len(system), "user_chars": len(user)},
-            model=self._settings.bedrock_llm_model_id,
+            model=self._settings.primary_model_id,
         ) as span:
             try:
                 response = await self._client.chat.completions.create(
@@ -219,7 +219,7 @@ class PortkeyLlmClient:
             provider = provider_from_model(served, self._settings)
             result = LlmResult(
                 text=text,
-                model_id=served or self._settings.bedrock_llm_model_id,
+                model_id=served or self._settings.primary_model_id,
                 provider=provider,
                 input_tokens=getattr(usage, "prompt_tokens", 0) or 0,
                 output_tokens=getattr(usage, "completion_tokens", 0) or 0,
@@ -238,7 +238,7 @@ class PortkeyLlmClient:
         async with self._tracer.observe(
             "llm.answer", as_type="generation",
             input={"system_chars": len(system), "user_chars": len(user), "stream": True},
-            model=self._settings.bedrock_llm_model_id,
+            model=self._settings.primary_model_id,
         ) as span:
             try:
                 stream = await self._client.chat.completions.create(
@@ -287,7 +287,7 @@ class PortkeyLlmClient:
                 metadata={"provider": provider, "stop_reason": stop},
             )
             yield LlmDelta(
-                done=True, model_id=served or self._settings.bedrock_llm_model_id,
+                done=True, model_id=served or self._settings.primary_model_id,
                 provider=provider, input_tokens=usage_in, output_tokens=usage_out, stop_reason=stop,
             )
 

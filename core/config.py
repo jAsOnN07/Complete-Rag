@@ -11,8 +11,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from core.models import ChunkStrategy
 
-RerankerBackend = Literal["cross_encoder", "bedrock", "none"]
-EmbeddingBackend = Literal["bedrock", "fastembed"]
+RerankerBackend = Literal["cross_encoder", "cohere", "bedrock", "none"]
+EmbeddingBackend = Literal["cohere", "bedrock", "fastembed"]
+LlmPrimary = Literal["anthropic", "bedrock"]
 LlmBackend = Literal["portkey", "bedrock"]
 RetrievalMode = Literal["dense", "hybrid"]
 OutputGuardBackend = Literal["bedrock", "none"]
@@ -34,6 +35,7 @@ _DEFAULT_THRESHOLDS: dict[str, float] = {
     # hybrid mode never gates pre-LLM; the reranker and sentinel own not-found.
     "rrf": 0.0,
     "cross_encoder": 0.0,   # ms-marco logit; >0 means "more relevant than not"
+    "cohere": 0.15,         # Cohere Rerank returns 0-1; provisional until calibrated on gold
     "bedrock": 0.35,        # Bedrock Rerank returns 0-1
     "none": 0.55,           # no reranker => the dense score survives
 }
@@ -55,11 +57,17 @@ class Settings(BaseSettings):
     bedrock_embed_model_id: str = "amazon.titan-embed-text-v2:0"
     bedrock_embed_dim: int = 1024
 
-    # Embedding backend. Titan is the production default; fastembed is a local
-    # ONNX backend that keeps the whole dev loop real while Bedrock is
-    # unavailable. They are different vector spaces, so the collection name
+    # Embedding backend. Cohere is the production default (hosted, called
+    # directly - not through the gateway, because Cohere's input_type matters
+    # for quality and must not be dropped by a translation layer). Titan is
+    # available for accounts with Bedrock runtime; fastembed is the local
+    # zero-cost dev backend. Different vector spaces => the collection name
     # encodes which one produced the index.
-    embedding_backend: EmbeddingBackend = "bedrock"
+    embedding_backend: EmbeddingBackend = "cohere"
+    cohere_api_key: SecretStr | None = None
+    cohere_embed_model: str = "embed-v4.0"
+    cohere_embed_dim: int = 1024
+    cohere_rerank_model: str = "rerank-v3.5"
     fastembed_model: str = "BAAI/bge-small-en-v1.5"
     fastembed_dim: int = 384
 
@@ -94,9 +102,15 @@ class Settings(BaseSettings):
     # fallback); "bedrock" calls Bedrock directly and exists for the M2
     # integration check only.
     llm_backend: LlmBackend = "portkey"
+    # Which provider is the primary target in the Portkey fallback chain.
+    # anthropic = Claude API direct (bare ids, e.g. claude-sonnet-5);
+    # bedrock  = Claude on Bedrock (inference-profile ids).
+    llm_primary: LlmPrimary = "anthropic"
+    anthropic_model_id: str = "claude-sonnet-5"
     portkey_api_key: SecretStr | None = None
     portkey_base_url: str = "https://api.portkey.ai/v1"
     portkey_config_slug: str | None = None
+    portkey_anthropic_provider: str = "@anthropic"
     portkey_bedrock_provider: str = "@aws"
     portkey_groq_provider: str = "@groq"
     groq_api_key: SecretStr | None = None
@@ -185,15 +199,24 @@ class Settings(BaseSettings):
         return "rrf" if self.retrieval_mode == "hybrid" else "dense"
 
     @property
+    def primary_model_id(self) -> str:
+        """The model the gateway tries first; provider-specific id form."""
+        return self.anthropic_model_id if self.llm_primary == "anthropic" else self.bedrock_llm_model_id
+
+    @property
     def embed_model_id(self) -> str:
         if self.embedding_backend == "fastembed":
             return self.fastembed_model
+        if self.embedding_backend == "cohere":
+            return self.cohere_embed_model
         return self.bedrock_embed_model_id
 
     @property
     def embed_dim(self) -> int:
         if self.embedding_backend == "fastembed":
             return self.fastembed_dim
+        if self.embedding_backend == "cohere":
+            return self.cohere_embed_dim
         return self.bedrock_embed_dim
 
     @property
@@ -230,10 +253,15 @@ class Settings(BaseSettings):
             "prefetch_k": self.prefetch_k,
             "rerank_top_n": self.rerank_top_n,
             "reranker_backend": self.reranker_backend,
-            "cross_encoder_model": self.cross_encoder_model,
+            "reranker_model": (
+                self.cohere_rerank_model if self.reranker_backend == "cohere"
+                else self.cross_encoder_model if self.reranker_backend == "cross_encoder"
+                else self.bedrock_rerank_model_arn
+            ),
             "relevance_threshold": self.resolved_relevance_threshold,
             "relevance_threshold_dense": self.threshold_for("dense"),
-            "bedrock_llm_model_id": self.bedrock_llm_model_id,
+            "llm_primary": self.llm_primary,
+            "primary_model_id": self.primary_model_id,
             "llm_backend": self.llm_backend,
             "groq_model_id": self.groq_model_id,
             "embedding_backend": self.embedding_backend,

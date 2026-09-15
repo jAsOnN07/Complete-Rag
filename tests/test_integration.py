@@ -158,3 +158,29 @@ async def test_input_guard_false_positive_rate_on_gold_set(settings):
         if not r.allowed:
             blocked.append((q.id, r.summary))
     assert blocked == [], f"false positives: {blocked}"
+
+
+async def test_cohere_embed_returns_the_configured_dimension(settings):
+    from retrieval.embedder import CohereEmbedder, build_cohere_client
+
+    e = CohereEmbedder(client=build_cohere_client(settings), model_id=settings.cohere_embed_model, dim=settings.cohere_embed_dim)
+    v = await e.embed_query("customer due diligence")
+    assert len(v) == settings.cohere_embed_dim
+
+
+async def test_cohere_rerank_separates_relevant_from_irrelevant(settings):
+    from core.models import Chunk, ChunkStrategy, DocumentMeta, ScoredChunk, make_chunk_id
+    from retrieval.embedder import build_cohere_client
+    from retrieval.reranker import CohereReranker
+
+    def sc(doc, text, i):
+        meta = DocumentMeta(doc_id=doc, source_path="x", title=doc, regulator="RBI")
+        return ScoredChunk(chunk=Chunk(chunk_id=make_chunk_id(doc, ChunkStrategy.FIXED, i), doc_id=doc, text=text,
+                                       ordinal=i, strategy=ChunkStrategy.FIXED, meta=meta), score=0.5, rank=i, stage="fused")
+    cands = [sc("dep", "Interest rate on deposits shall be uniform across all branches.", 0),
+             sc("lad", "five new districts, viz., Sham, Nubra, Changthang, Zanskar and Drass in the UT of Ladakh", 1)]
+    r = CohereReranker(client=build_cohere_client(settings), model_id=settings.cohere_rerank_model)
+    out = await r.rerank("Which districts were formed in Ladakh?", cands, top_n=2)
+    assert out[0].chunk.doc_id == "lad"
+    assert out[0].score > out[1].score
+    assert 0.0 <= out[1].score <= 1.0

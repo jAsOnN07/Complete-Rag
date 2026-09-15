@@ -192,13 +192,102 @@ class FastEmbedEmbedder:
             return vectors
 
 
-def build_embedder(settings: Any = None) -> BedrockTitanEmbedder | FastEmbedEmbedder:
-    """Select the embedding backend from config. Titan unless told otherwise."""
+class CohereEmbedder:
+    """Cohere Embed via the SDK, called directly.
+
+    Not routed through the gateway: `input_type` (search_document at ingest,
+    search_query at query time) is a quality-bearing parameter that an
+    OpenAI-compatible translation layer would silently drop, and there is no
+    valid fallback embedding model anyway - a different model is a different
+    vector space. Batched at the API's 96-text limit.
+    """
+
+    BATCH = 96
+
+    def __init__(
+        self,
+        *,
+        client: Any,
+        model_id: str,
+        dim: int,
+        tracer: Tracer | None = None,
+    ) -> None:
+        self._client = client
+        self._model_id = model_id
+        self._dim = dim
+        self._tracer = tracer or get_tracer()
+
+    @property
+    def model_id(self) -> str:
+        return self._model_id
+
+    @property
+    def dim(self) -> int:
+        return self._dim
+
+    async def _embed(self, texts: Sequence[str], input_type: str) -> list[list[float]]:
+        out: list[list[float]] = []
+        for start in range(0, len(texts), self.BATCH):
+            batch = list(texts[start : start + self.BATCH])
+            try:
+                response = await self._client.embed(
+                    model=self._model_id,
+                    input_type=input_type,
+                    texts=batch,
+                    embedding_types=["float"],
+                    output_dimension=self._dim,
+                )
+            except Exception as exc:  # noqa: BLE001 - re-raised as a typed error
+                raise UpstreamServiceError(
+                    "cohere", "embed", f"{type(exc).__name__}: {exc}", cause=exc
+                ) from exc
+            out.extend([list(v) for v in response.embeddings.float_])
+        return out
+
+    async def embed_query(self, text: str) -> list[float]:
+        async with self._tracer.observe(
+            "embed.query", as_type="embedding", input={"chars": len(text)}
+        ) as span:
+            vector = (await self._embed([text], "search_query"))[0]
+            span.update(
+                output={"dim": len(vector)},
+                metadata={"model_id": self._model_id, "backend": "cohere"},
+            )
+            return vector
+
+    async def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
+        async with self._tracer.observe(
+            "embed.documents", as_type="embedding", input={"count": len(texts)}
+        ) as span:
+            vectors = await self._embed(texts, "search_document")
+            span.update(
+                output={"count": len(vectors)},
+                metadata={"model_id": self._model_id, "dim": self._dim, "backend": "cohere"},
+            )
+            return vectors
+
+
+def build_cohere_client(settings: Any) -> Any:
+    import cohere
+
+    if settings.cohere_api_key is None:
+        raise RuntimeError("COHERE_API_KEY is not set")
+    return cohere.AsyncClientV2(api_key=settings.cohere_api_key.get_secret_value())
+
+
+def build_embedder(settings: Any = None) -> BedrockTitanEmbedder | FastEmbedEmbedder | CohereEmbedder:
+    """Select the embedding backend from config."""
     if settings is None:
         from core.config import get_settings
 
         settings = get_settings()
 
+    if settings.embedding_backend == "cohere":
+        return CohereEmbedder(
+            client=build_cohere_client(settings),
+            model_id=settings.cohere_embed_model,
+            dim=settings.cohere_embed_dim,
+        )
     if settings.embedding_backend == "fastembed":
         return FastEmbedEmbedder(
             model_name=settings.fastembed_model, dim=settings.fastembed_dim

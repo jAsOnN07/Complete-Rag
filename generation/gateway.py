@@ -24,6 +24,7 @@ from typing import Any
 # never fire on either without listing them explicitly.
 FALLBACK_STATUS_CODES: tuple[int, ...] = (400, 401, 403, 404, 408, 429, 500, 502, 503, 504)
 
+PROVIDER_ANTHROPIC = "anthropic"
 PROVIDER_BEDROCK = "bedrock"
 PROVIDER_GROQ = "groq"
 PROVIDER_UNKNOWN = "unknown"
@@ -35,8 +36,14 @@ def target_model(provider_slug: str, model_id: str) -> str:
     return f"{slug}/{model_id}"
 
 
+def primary_target(settings: Any) -> str:
+    if settings.llm_primary == "anthropic":
+        return target_model(settings.portkey_anthropic_provider, settings.anthropic_model_id)
+    return target_model(settings.portkey_bedrock_provider, settings.bedrock_llm_model_id)
+
+
 def fallback_config(settings: Any) -> dict[str, Any]:
-    """Bedrock primary, Groq fallback, as a Portkey config document."""
+    """Primary (Anthropic direct or Bedrock) then Groq, as a Portkey config document."""
     groq_overrides: dict[str, Any] = {
         "model": target_model(settings.portkey_groq_provider, settings.groq_model_id)
     }
@@ -50,13 +57,7 @@ def fallback_config(settings: Any) -> dict[str, Any]:
         # 8k tokens/minute and answers 429 with "try again in ~10s".
         "retry": {"attempts": 3, "on_status_codes": [429, 500, 502, 503, 504]},
         "targets": [
-            {
-                "override_params": {
-                    "model": target_model(
-                        settings.portkey_bedrock_provider, settings.bedrock_llm_model_id
-                    )
-                }
-            },
+            {"override_params": {"model": primary_target(settings)}},
             {"override_params": groq_overrides},
         ],
     }
@@ -72,10 +73,12 @@ def provider_from_model(served_model: str | None, settings: Any) -> str:
     if not served_model:
         return PROVIDER_UNKNOWN
     name = served_model.lower()
-    if name.startswith(("anthropic.", "us.anthropic.", "eu.anthropic.", "global.anthropic.")):
+    # Bedrock ids carry a vendor prefix (anthropic.claude-..., us.anthropic...);
+    # the Claude API returns bare ids (claude-sonnet-5).
+    if name.startswith(("anthropic.", "us.anthropic.", "eu.anthropic.", "global.anthropic.", "apac.anthropic.")):
         return PROVIDER_BEDROCK
-    if "anthropic" in name or "claude" in name:
-        return PROVIDER_BEDROCK
+    if name.startswith("claude"):
+        return PROVIDER_ANTHROPIC
     groq_tail = settings.groq_model_id.lower().split("/")[-1]
     if groq_tail and groq_tail in name:
         return PROVIDER_GROQ

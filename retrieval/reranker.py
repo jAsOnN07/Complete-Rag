@@ -85,6 +85,49 @@ class CrossEncoderReranker:
             return out
 
 
+class CohereReranker:
+    """Cohere Rerank via the SDK. Scores are 0-1 relevance probabilities."""
+
+    backend = "cohere"
+    score_scale: ScoreScale = "unit"
+
+    def __init__(self, *, client: Any, model_id: str, tracer: Tracer | None = None) -> None:
+        self._client = client
+        self._model_id = model_id
+        self._tracer = tracer or get_tracer()
+
+    @property
+    def model_id(self) -> str:
+        return self._model_id
+
+    async def rerank(
+        self, query: str, candidates: Sequence[ScoredChunk], top_n: int
+    ) -> list[ScoredChunk]:
+        if not candidates:
+            return []
+        async with self._tracer.observe(
+            "rerank.cohere", input={"candidates": len(candidates), "top_n": top_n}
+        ) as span:
+            try:
+                response = await self._client.rerank(
+                    model=self._model_id,
+                    query=query,
+                    documents=[c.chunk.text_for_retrieval for c in candidates],
+                    top_n=min(top_n, len(candidates)),
+                )
+            except Exception as exc:  # noqa: BLE001 - re-raised as a typed error
+                raise UpstreamServiceError(
+                    "cohere", "rerank", f"{type(exc).__name__}: {exc}", cause=exc
+                ) from exc
+            ordered = [(candidates[r.index], float(r.relevance_score)) for r in response.results]
+            out = _rescored(ordered, top_n)
+            span.update(
+                output={"top_score": out[0].score if out else None, "returned": len(out)},
+                metadata={"model": self._model_id, "scale": self.score_scale},
+            )
+            return out
+
+
 class BedrockReranker:
     """Amazon Bedrock Rerank via bedrock-agent-runtime.
 
@@ -156,7 +199,9 @@ class BedrockReranker:
             return out
 
 
-def build_reranker(settings: Any = None) -> NoopReranker | CrossEncoderReranker | BedrockReranker:
+def build_reranker(
+    settings: Any = None,
+) -> NoopReranker | CrossEncoderReranker | CohereReranker | BedrockReranker:
     if settings is None:
         from core.config import get_settings
 
@@ -166,6 +211,10 @@ def build_reranker(settings: Any = None) -> NoopReranker | CrossEncoderReranker 
         return NoopReranker()
     if settings.reranker_backend == "cross_encoder":
         return CrossEncoderReranker(model_name=settings.cross_encoder_model)
+    if settings.reranker_backend == "cohere":
+        from retrieval.embedder import build_cohere_client
+
+        return CohereReranker(client=build_cohere_client(settings), model_id=settings.cohere_rerank_model)
 
     import boto3
 

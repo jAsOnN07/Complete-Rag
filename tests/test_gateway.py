@@ -22,9 +22,12 @@ from observability.tracing import RecordingTracer
 def settings() -> Settings:
     return Settings(
         portkey_api_key="pk-test",
+        llm_primary="bedrock",
         portkey_bedrock_provider="@aws",
+        portkey_anthropic_provider="@anthropic",
         portkey_groq_provider="@groq",
         bedrock_llm_model_id="us.anthropic.claude-sonnet-5",
+        anthropic_model_id="claude-sonnet-5",
         groq_model_id="openai/gpt-oss-120b",
         groq_reasoning_effort="low",
     )
@@ -63,11 +66,19 @@ def test_reasoning_effort_omitted_when_unset(settings):
     assert "reasoning_effort" not in fallback_config(settings)["targets"][1]["override_params"]
 
 
+def test_anthropic_primary_uses_bare_claude_id(settings):
+    s = settings.model_copy(update={"llm_primary": "anthropic"})
+    models = [t["override_params"]["model"] for t in fallback_config(s)["targets"]]
+    assert models == ["@anthropic/claude-sonnet-5", "@groq/openai/gpt-oss-120b"]
+
+
 @pytest.mark.parametrize(
     "served,expected",
     [
         ("us.anthropic.claude-sonnet-5", "bedrock"),
         ("anthropic.claude-sonnet-5", "bedrock"),
+        ("claude-sonnet-5", "anthropic"),
+        ("claude-opus-5", "anthropic"),
         ("openai/gpt-oss-120b", "groq"),
         ("gpt-oss-120b", "groq"),
         (None, "unknown"),

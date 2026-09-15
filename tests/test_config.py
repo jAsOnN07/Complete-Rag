@@ -79,12 +79,14 @@ def test_fingerprint_ignores_secrets():
     assert a == b
 
 
-def test_embedding_backend_defaults_to_bedrock_titan():
-    """CLAUDE.md names Titan V2 as the production embedder; local is opt-in."""
+def test_embedding_backend_defaults_to_cohere():
+    """Cohere is the hosted production embedder; Titan and fastembed remain selectable."""
     settings = Settings()
-    assert settings.embedding_backend == "bedrock"
-    assert settings.embed_model_id == settings.bedrock_embed_model_id
-    assert settings.embed_dim == settings.bedrock_embed_dim
+    assert settings.embedding_backend == "cohere"
+    assert settings.embed_model_id == settings.cohere_embed_model
+    assert settings.embed_dim == settings.cohere_embed_dim
+    titan = Settings(embedding_backend="bedrock")
+    assert titan.embed_model_id == titan.bedrock_embed_model_id
 
 
 def test_fastembed_backend_resolves_its_own_model_and_dim():
@@ -98,7 +100,7 @@ def test_collection_name_encodes_embedder_so_vector_spaces_never_collide():
     titan = Settings(qdrant_collection_prefix="c", embedding_backend="bedrock")
     bge = Settings(qdrant_collection_prefix="c", embedding_backend="fastembed")
     assert titan.collection_name() != bge.collection_name()
-    assert titan.collection_name().startswith("c_fixed_")
+    assert titan.collection_name().startswith("c_fixed_amazon-titan")
     assert "384" in bge.collection_name()
 
 
